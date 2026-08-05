@@ -16,6 +16,71 @@ php -S localhost:8000 -t public
 
 ---
 
+## Starting a new project
+
+```bash
+mkdir -p /var/www/myapp && cd /var/www/myapp
+```
+
+Write `composer.json`:
+
+```json
+{
+    "name": "you/myapp",
+    "type": "project",
+    "require": { "chrisesser/keel": "^0.1" },
+    "autoload": { "psr-4": { "App\\": "src/" } }
+}
+```
+
+Until Keel is on Packagist, point at wherever the checkout lives instead — add a `repositories`
+entry and require `@dev`:
+
+```json
+"repositories": [
+    { "type": "path", "url": "/var/www/keel", "options": { "symlink": false } }
+],
+"require": { "chrisesser/keel": "@dev" }
+```
+
+`symlink: false` matters. Composer symlinks a path repository by default, which means editing
+Keel silently edits every project using it — right while you are working on the framework, wrong
+while you are working on an application built with it.
+
+Then:
+
+```bash
+composer install
+vendor/bin/keel init          # scaffolds public/, views/, config/, scripts/, schema.sql
+```
+
+Fill in `DB_NAME`, `DB_USER`, `DB_PASS` and `APP_URL` in `config/.env` — the encryption key is
+already generated. Then:
+
+```bash
+php scripts/init-db.php       # creates the database, applies schema.sql, seeds the first admin
+php scripts/check-env.php     # tells you what this machine is missing
+php -S localhost:8000 -t public
+```
+
+Sign in as the admin you just created. You have working sign-up, sign-in, two-factor,
+organizations, invitations, roles and an audit log, and an empty dashboard to build on.
+
+### Where your code goes
+
+| You want to | Edit |
+|---|---|
+| Add a route | `config/container.php`, in the marked block under `Routes::app($router)` |
+| Add a screen | `src/Controller/`, `views/`, plus that route |
+| Change the sidebar | Pass `$nav` from your controllers — see the docblock in `views/layouts/main.php` |
+| Change the schema | Add a file to `scripts/migrations/`, run `php scripts/migrate.php` |
+| Change what a role may do | `Keel\Accounts\Model\Role` and `Keel\Accounts\OrgGuard` |
+| Add to the support hub | `OrgAdminController::show()` and `views/organizations/show.php` |
+
+Keel's own routes live in `Keel\Routes`, so a framework upgrade never touches your file.
+
+---
+
 ## Why this exists
 
 Most frameworks give you a router and a template engine and leave the hard, boring, identical 20%
