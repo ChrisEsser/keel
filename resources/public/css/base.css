@@ -1,0 +1,445 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Base stylesheet — the only CSS the public surfaces need. Loaded first by
+   every layout:
+
+     layouts/marketing.php  base.css + marketing.css
+     layouts/guest.php      base.css + guest.css
+     layouts/main.php       base.css + app.css
+
+   Split out of app.css so the apex marketing pages and the auth/error pages
+   stop pulling the whole authenticated app's stylesheet (~80 KB) for a
+   landing page and a login form.
+
+   What belongs here: design tokens, the reset, typography, form controls,
+   the guest card + auth forms, and the app-wide accessibility rules. What
+   does NOT: anything only an authenticated page can render — the shell, nav,
+   modals, data tables, dashboards, editors. Those stay in app.css.
+
+   Rule of thumb: if a logged-out visitor can't see it, it isn't base.
+   ════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── Design tokens ────────────────────────────────────────────────────────────
+   Single source of truth for the warm-stone palette + spacing/type/radius/shadow
+   scales. Component rules reference these via var(); change a value here to
+   retheme app-wide. */
+
+:root {
+    /* Ink / text — warm stone, dark → faint */
+    --ink:            #1c1917;
+    --ink-muted:      #57534e;
+    --ink-subtle:     #78716c;
+    --ink-faint:      #a8a29e;
+    /* Legacy alias used across views as var(--text-muted, #888); the old #888
+       fallback failed AA (3.5:1 on white). Point it at --ink-subtle (4.8:1). */
+    --text-muted:     #78716c;
+
+    /* Surfaces */
+    --surface:        #fff;
+    --bg:             rgb(252, 252, 251);
+    --surface-alt:    #f5f1eb;
+    --surface-hover:  #faf7f3;
+
+    /* Borders — subtle → strong */
+    --border-subtle:  #f0ebe3;
+    --border:         #e5ddd0;
+    --border-strong:  #d6cec4;
+
+    /* Accent — indigo. The single interactive/brand hue (links, buttons, focus,
+       selected states). --accent-soft is the pale secondary; --accent-ring the
+       lighter focus ring used on dark surfaces. */
+    --accent:         #4f46e5;
+    --accent-hover:   #4338ca;
+    --accent-soft:    #a5b4fc;
+    --accent-ring:    #c7d2fe;
+
+    /* Status */
+    --danger:         #dc2626;
+    --danger-hover:   #b91c1c;
+    --warn:           #f59e0b;
+    --success:        #16a34a;
+
+    /* Radius */
+    --radius-sm:      4px;
+    --radius:         6px;
+    --radius-lg:      8px;
+
+    /* Elevation */
+    --shadow-sm:      0 1px 3px rgba(28,25,23,0.06);
+    --shadow-md:      0 4px 14px rgba(28,25,23,0.08);
+
+    /* Spacing scale (4/8/12/16/24/32) — adopted incrementally by later milestones */
+    --space-1:        0.25rem;
+    --space-2:        0.5rem;
+    --space-3:        0.75rem;
+    --space-4:        1rem;
+    --space-5:        1.5rem;
+    --space-6:        2rem;
+
+    /* Type scale */
+    --text-xs:        0.72rem;
+    --text-sm:        0.8rem;
+    --text-md:        0.875rem;
+    --text-lg:        1rem;
+}
+
+
+/* ── Blueprint tokens (public surfaces) ───────────────────────────────────────
+   The marketing art direction, shared by the apex pages and the guest card so
+   login/signup/404 read as the same product as the landing page. These used to
+   be declared twice — once in marketing.css, once copied into guest.css under a
+   "keep in sync" comment — which is exactly the drift this file exists to end.
+   Scoped to the two public body classes, never :root, so the app's palette is
+   untouched. Marketing-only extras (--mkt-accent-2, --mkt-line-soft,
+   --mkt-grid-deep) stay in marketing.css. */
+
+body.marketing-layout,
+body.guest-layout {
+    --mkt-primary: #4f46e5;        /* indigo — primary structure/brand (= app --accent) */
+    --mkt-primary-bright: #6366f1; /* brighter indigo — links, accents */
+    --mkt-deep: #1e1b4b;           /* deep indigo — blueprint panels / dark bands */
+    --mkt-accent: #f59e0b;         /* amber — construction pop: fills, markers, on-dark */
+    --mkt-accent-ink: #b45309;     /* amber-700 — accent as text/fine mark on light (AA-safe) */
+    --mkt-paper: #f5f4ff;          /* faint indigo-tinted panel ground */
+    --mkt-line-ink: rgba(79, 70, 229, 0.10); /* grid line on paper (indigo) */
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* Drafting grid, drawn on paper. Applied to hero/section grounds. */
+    --mkt-grid-paper:
+        linear-gradient(var(--mkt-line-ink) 1px, transparent 1px),
+        linear-gradient(90deg, var(--mkt-line-ink) 1px, transparent 1px);
+}
+
+
+/* ── Reset & Base ─────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+
+    color: var(--ink);
+}
+
+
+/* ── Typography & Links ───────────────────────────────── */
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+dl { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem 1rem; }
+dt { font-weight: 600; color: var(--ink-muted); }
+/* The UA gives <dd> a 40px inline-start margin, which indents every value away from
+   its column edge — meaningless once the list is a two-column grid. */
+dd { margin: 0; }
+
+
+/* ── Buttons & Inputs ─────────────────────────────────── */
+
+/* The `hidden` attribute has to beat the display rules below, and by default it does not: the
+   browser's own [hidden] rule is a USER-AGENT style, so any author rule setting `display` wins
+   over it no matter how unspecific — `button { display: inline-flex }` included. That left every
+   `<button hidden>` in the app rendering as though it were visible, which had already been patched
+   twice, one element at a time (.asset-panel[hidden], .chat-paywall-overlay[hidden] in app.css).
+   As an AUTHOR rule this needs no !important: [hidden] is (0,1,0) and outranks a bare tag. */
+[hidden] { display: none; }
+
+button, input[type=submit], .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: inherit;
+    text-decoration: none;
+    /* default: secondary */
+    background: var(--ink-muted);
+}
+
+[data-lucide] {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    stroke-width: 2;
+}
+button:hover, input[type=submit]:hover, .btn:hover { background: #44403c; color: #fff; }
+button:disabled, .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* Anchors styled as buttons can't take :disabled, so link-buttons in a locked panel opt out
+   of pointer events instead. Same look either way. */
+.btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+/* Inputs had no disabled state at all, which read as editable-but-unresponsive in locked panels. */
+input:disabled, select:disabled, textarea:disabled {
+    background: var(--surface-alt);
+    color: var(--ink-subtle);
+    cursor: not-allowed;
+}
+
+/* solid */
+.btn-primary             { background: var(--accent); border: 1px solid var(--accent); }
+.btn-primary:hover       { background: var(--accent-hover); color: #fff; }
+
+.btn-danger              { background: var(--danger); }
+.btn-danger:hover        { background: var(--danger-hover); color: #fff; }
+
+/* outline */
+/* NOTE: there is deliberately no .btn-secondary. It was removed once its only remaining callers
+   turned out to be the dark tool cards, where a muted-grey outline on a near-black card was
+   effectively invisible. Use .btn-ghost for a low-emphasis action on light, or .btn-subtle
+   on a dark surface. */
+.btn-outline-primary     { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn-outline-primary:hover { background: var(--accent); color: #fff; }
+
+.btn-outline-danger      { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btn-outline-danger:hover { background: var(--danger); color: #fff; }
+
+.btn-sm { padding: 0.2rem 0.6rem; font-size: 0.8rem; }
+
+/* filled, borderless — light grey, for low-emphasis actions */
+.btn-ghost { background: var(--surface-alt); color: var(--ink-muted); border: none; }
+.btn-ghost:hover { background: var(--border); color: var(--ink); }
+
+/* ghost, but the icon/text picks up a contextual color on hover */
+.btn-ghost-primary { background: var(--surface-alt); color: var(--ink-muted); border: none; }
+.btn-ghost-primary:hover { background: var(--surface-alt); color: var(--accent); }
+
+.btn-ghost-danger { background: var(--surface-alt); color: var(--ink-muted); border: none; }
+.btn-ghost-danger:hover { background: var(--surface-alt); color: var(--danger); }
+
+/* icon-only sizing: equal padding instead of the default rectangular text padding */
+.btn-icon { padding: 0.4rem; }
+
+
+/* ── Inputs ───────────────────────────────────────────── */
+
+input:not([type=submit]):not([type=checkbox]):not([type=radio]),
+select,
+textarea {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--ink);
+    background: #fff;
+    outline: none;
+}
+input:not([type=submit]):not([type=checkbox]):not([type=radio]):focus,
+select:focus,
+textarea:focus {
+    border-color: var(--ink-faint);
+}
+
+/* A required field left empty on submit -- set/cleared by AjaxModal (public/js/app.js).
+   The <input> selectors must repeat the base rule's three :not() clauses above. Each :not()
+   counts its argument's specificity, so that base rule scores (0,3,1) and sets the `border`
+   SHORTHAND -- a plain `input.has-error` (0,1,1) loses to it outright and the error border
+   never appeared. select/textarea have no such guard and would be fine either way; they carry
+   the same shape only so the three stay visibly parallel. */
+input:not([type=submit]):not([type=checkbox]):not([type=radio]).has-error,
+select.has-error,
+textarea.has-error {
+    border-color: var(--danger);
+}
+input:not([type=submit]):not([type=checkbox]):not([type=radio]).has-error:focus,
+select.has-error:focus,
+textarea.has-error:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+/* Help text under a field. Lives here rather than with the modal rules because the
+   auth forms use it too, and guest pages never load app.css.
+   For prose that is NOT attached to a form field — a page's intro paragraph, an empty-state
+   line — use .text-muted below; this one is for form help. */
+.form-text {
+    font-size: 0.8rem;
+    color: var(--ink-subtle);
+    margin-top: 0.35rem;
+    width: 100%;
+}
+
+/* Quieter body prose: page intros, empty-state copy, secondary lines in a table cell.
+   Colour only — it keeps the surrounding text size, which is what separates it from .form-text.
+   Sits in base.css because guest and standalone pages (auth/signup-sent.php,
+   email/unsubscribe.php) use it and never load app.css.
+   NOTE: this class was used in ~30 places for a long time with no rule behind it at all, so
+   everything wearing it rendered at full body ink. Do not remove it again. */
+.text-muted {
+    color: var(--ink-subtle);
+}
+
+
+/* ── Layout: Guest (centered card) ────────────────────── */
+
+body.guest-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.guest-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2.5rem 3rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 2px 12px rgba(28,25,23,0.07);
+}
+
+
+/* Auth forms — semantic stacked fields (labels above full-width inputs). */
+.auth-form { display: flex; flex-direction: column; gap: 1rem; }
+.auth-form .form-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.auth-form .form-field label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+}
+.auth-form .form-field label .form-optional { color: var(--ink-faint); font-weight: 400; }
+.auth-form input:not([type=checkbox]),
+.auth-form select { width: 100%; }
+.auth-form .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+}
+.auth-form .form-check input { width: auto; }
+.auth-form .form-actions {
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+/* Password field with a show/hide toggle. */
+.password-input { position: relative; display: flex; }
+.password-input input { padding-right: 2.5rem; }
+.password-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 0.7rem;
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+}
+.password-toggle:hover { background: none; color: var(--ink); }
+.password-toggle svg { width: 17px; height: 17px; }
+
+/* Segmented code entry -- one box per character. Built by public/js/code-input.js around the
+   real input, which becomes type=hidden and stays the submitted field. */
+.code-input {
+    display: grid;
+    grid-template-columns: repeat(var(--code-len), minmax(0, 1fr));
+    gap: 0.5rem;
+}
+.code-input input {
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.5rem 0;
+    text-align: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.15rem;
+}
+.code-input--mask input { -webkit-text-security: disc; }
+
+.auth-link-sm { font-size: 0.875rem; }
+.auth-error   { color: var(--danger); font-size: 0.875rem; }
+.auth-success { color: var(--success); font-size: 0.875rem; }
+
+/* Text/link button (no chrome) — e.g. "Resend code". */
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--ink-muted);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.btn-link:hover { background: none; color: var(--accent); }
+
+
+/* ── Honeypot (public form bot trap) ──────────────────────────────────────────
+   The `_hp` field in views/partials/form-guard.php. Moved off-canvas rather than
+   display:none or visibility:hidden — a bot that skips hidden inputs would never
+   trip the trap, and this way it stays a real, focusable-by-nothing field. The
+   wrapper carries aria-hidden and the input tabindex="-1", so assistive tech and
+   keyboard users never reach it either. */
+
+.form-guard {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+
+/* ── Accessibility ────────────────────────────────────────────────────────────
+   Keyboard focus, skip link, and reduced-motion support. Base rather than app so
+   the marketing and auth pages keep their focus indicators (WCAG 2.4.7) and honour
+   prefers-reduced-motion (WCAG 2.3.3). The dark-surface ring overrides for the
+   sidebar and app footer stay in app.css — those elements only exist there. */
+
+/* Visible focus ring for keyboard users only (:focus-visible), so mouse clicks
+   don't show a ring but Tab navigation does. Indigo reads >=4.5:1 on the app's
+   light surfaces. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* The main content wrapper is focused via the skip link; it's not an interactive
+   target, so suppress the ring there. */
+#main-content:focus-visible { outline: none; }
+
+/* Skip-to-content link: off-screen until focused, then slides into view. */
+.skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 1100;
+    background: var(--ink);
+    color: #fff;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transform: translateY(-160%);
+    transition: transform 0.15s ease;
+}
+.skip-link:focus { transform: translateY(0); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

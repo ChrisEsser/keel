@@ -1,0 +1,40 @@
+{
+    "name": "chrisesser/keel",
+    "description": "A zero-dependency PHP 8.4 application framework with users, organizations, auth and billing already built.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["framework", "mvc", "saas", "multi-tenant", "php"],
+    "authors": [
+        {
+            "name": "Chris Esser",
+            "email": "esser32@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.4",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo": "*"
+    },
+    "suggest": {
+        "stripe/stripe-php": "Required only for Keel\\Billing — subscriptions, payment methods and webhooks (^20.3)",
+        "ext-sodium": "Required only for Keel\\Security\\Crypto — encrypting secrets at rest, e.g. TOTP seeds",
+        "ext-curl": "Required only for the Mailgun and Twilio providers"
+    },
+    "autoload": {
+        "psr-4": {
+            "Keel\\": "src/"
+        }
+    },
+    "bin": ["bin/keel"],
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "require-dev": {
+        "phpstan/phpstan": "^2.2",
+        "stripe/stripe-php": "^20.3"
+    }
+}

@@ -1,0 +1,12 @@
+<!--
+  Placeholder mark. Replace this file with your own — it is referenced by the app shell, the guest
+  shell, and the marketing header, so one file changes all three.
+
+  A keel: the spine a hull is built up from. Drawn rather than typeset so it needs no font.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Logo">
+  <rect width="32" height="32" rx="7" fill="#4f46e5"/>
+  <path d="M9 8v10.5c0 3.6 2.9 6.5 7 6.5s7-2.9 7-6.5V8"
+        fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M16 8v17" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/>
+</svg>

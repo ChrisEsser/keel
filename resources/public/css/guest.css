@@ -1,0 +1,96 @@
+/*
+ * Guest layout — blueprint polish for auth/invitation/error pages.
+ *
+ * Layers the marketing site's BLUEPRINT language (paper drafting grid, mono
+ * eyebrow labels, registration ticks, amber fine marks) onto the guest card
+ * without touching the app's form furniture: buttons stay indigo, inputs and
+ * .auth-* / .guest-card rules are untouched so invitations, unsubscribe,
+ * and error pages degrade safely.
+ *
+ * Loaded after base.css, which supplies the guest card, the auth-form controls
+ * and the blueprint --mkt-* tokens (shared with marketing.css, defined once).
+ * This layout does NOT load app.css — anything a logged-out visitor needs
+ * belongs in base.css.
+ */
+
+body.guest-layout {
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 2rem 1rem;
+    background-color: var(--mkt-paper);
+    background-image: var(--mkt-grid-paper);
+    background-size: 28px 28px;
+}
+
+/* ── Brand header ─────────────────────────────────────── */
+
+.guest-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink);
+    text-decoration: none;
+}
+.guest-brand:hover { color: var(--ink); }
+.guest-brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+}
+.guest-brand .wordmark {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* ── Card: registration ticks + drafting marks ────────── */
+
+.guest-card {
+    position: relative;
+    box-shadow: 0 2px 16px rgba(30, 27, 75, 0.08);
+}
+.guest-card::before,
+.guest-card::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+}
+.guest-card::before {
+    top: 8px;
+    left: 8px;
+    border-top: 1px solid rgba(79, 70, 229, 0.35);
+    border-left: 1px solid rgba(79, 70, 229, 0.35);
+}
+.guest-card::after {
+    bottom: 8px;
+    right: 8px;
+    border-bottom: 1px solid rgba(79, 70, 229, 0.35);
+    border-right: 1px solid rgba(79, 70, 229, 0.35);
+}
+
+/* Amber measurement underline — echoes the marketing hero keyword. */
+.guest-card h1::after {
+    content: "";
+    display: block;
+    width: 2.25rem;
+    height: 3px;
+    background: var(--mkt-accent);
+    margin-top: 0.5rem;
+}
+
+/* Mono "// eyebrow" label above a page's h1. */
+.guest-eyebrow {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    color: var(--mkt-primary-bright);
+    margin-bottom: 0.35rem;
+}
+
+@media (max-width: 480px) {
+    .guest-card { padding: 1.75rem 1.5rem; }
+}

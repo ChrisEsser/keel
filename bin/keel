@@ -1,0 +1,149 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Keel's scaffolding CLI.
+ *
+ *   vendor/bin/keel init          Copy the starter files into this project
+ *   vendor/bin/keel init --force  Overwrite files that already exist
+ *
+ * `init` copies resources/ out of the package and into the host project: public/, views/, config/,
+ * scripts/, schema.sql. Those files are YOURS after that — Keel never touches them again, so a
+ * framework upgrade cannot revert a view you edited or a route you added.
+ *
+ * That is the trade this design makes. The alternative (rendering the framework's views from
+ * inside vendor/) survives upgrades untouched but makes changing anything a fight with the
+ * package. Views are the part every application rewrites, so they are the part that gets copied.
+ */
+
+// Works both as vendor/bin/keel in a host project and as bin/keel in a checkout of Keel itself.
+//
+// realpath() before dirname(), always. dirname() is purely lexical: given a path containing '..'
+// it strips the last SEGMENT, so dirname('a/vendor/pkg/bin/../../..') is 'a/vendor/pkg/bin/../..'
+// -- which points somewhere real, somewhere wrong, and scaffolds a project into vendor/.
+$autoloads = [
+    __DIR__ . '/../../../autoload.php',   // installed as a dependency
+    __DIR__ . '/../vendor/autoload.php',  // a checkout of Keel itself
+];
+$vendorDir = null;
+foreach ($autoloads as $file) {
+    $resolved = realpath($file);
+    if ($resolved !== false) {
+        require $resolved;
+        $vendorDir = dirname($resolved);
+        break;
+    }
+}
+if ($vendorDir === null) {
+    fwrite(STDERR, "Could not find the Composer autoloader. Run `composer install` first.\n");
+    exit(1);
+}
+
+$packageRoot = dirname(__DIR__);
+$resources = $packageRoot . '/resources';
+
+if (!is_dir($resources)) {
+    fwrite(STDERR, "Keel's resources/ directory is missing from {$packageRoot}.\n");
+    exit(1);
+}
+
+$argv = $_SERVER['argv'];
+$command = $argv[1] ?? 'help';
+$force = in_array('--force', $argv, true);
+
+if ($command !== 'init') {
+    echo "Keel\n\n";
+    echo "  vendor/bin/keel init [--force]   Scaffold a new project\n";
+    exit($command === 'help' ? 0 : 1);
+}
+
+// The project root is wherever vendor/ lives, unless we're running out of Keel's own checkout —
+// in which case there is nothing to scaffold into and saying so is better than writing files.
+$projectRoot = dirname($vendorDir);
+if (realpath($projectRoot) === realpath($packageRoot)) {
+    fwrite(STDERR, "This is Keel's own checkout, not a project using it.\n");
+    fwrite(STDERR, "Install Keel in a project and run vendor/bin/keel init there.\n");
+    exit(1);
+}
+
+echo "Scaffolding into {$projectRoot}\n\n";
+
+$written = 0;
+$skipped = 0;
+
+/** Copy one file, refusing to clobber unless asked. */
+$copyFile = function (string $from, string $to) use (&$written, &$skipped, $force, $projectRoot): void {
+    $rel = substr($to, strlen($projectRoot) + 1);
+
+    if (is_file($to) && !$force) {
+        echo "  skip   {$rel}\n";
+        $skipped++;
+        return;
+    }
+
+    $dir = dirname($to);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+
+    copy($from, $to);
+    echo "  write  {$rel}\n";
+    $written++;
+};
+
+/** Recursively copy a directory. */
+$copyTree = function (string $from, string $to) use (&$copyTree, $copyFile): void {
+    foreach (scandir($from) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $src = "$from/$entry";
+        $dst = "$to/$entry";
+        is_dir($src) ? $copyTree($src, $dst) : $copyFile($src, $dst);
+    }
+};
+
+foreach (['public', 'views', 'config', 'scripts'] as $dir) {
+    if (is_dir("$resources/$dir")) {
+        $copyTree("$resources/$dir", "$projectRoot/$dir");
+    }
+}
+$copyFile("$resources/schema.sql", "$projectRoot/schema.sql");
+
+// Writable directories the log providers create lazily. Made up front so an unwritable one is a
+// permissions problem you see now, rather than the first time someone triggers a password reset.
+foreach (['storage/mail', 'storage/sms', 'storage/logs'] as $dir) {
+    if (!is_dir("$projectRoot/$dir")) {
+        mkdir("$projectRoot/$dir", 0775, true);
+        echo "  mkdir  {$dir}\n";
+    }
+}
+
+// .env from the example, with a key already generated. A scaffolding step that leaves someone one
+// undocumented command away from a working install has not finished its job.
+$envPath = "$projectRoot/config/.env";
+if (!is_file($envPath)) {
+    $env = (string) file_get_contents("$resources/config/.env.example");
+    $env = str_replace('APP_ENCRYPTION_KEY=""', 'APP_ENCRYPTION_KEY="' . base64_encode(random_bytes(32)) . '"', $env);
+    file_put_contents($envPath, $env);
+    chmod($envPath, 0600);
+    echo "  write  config/.env  (with a fresh APP_ENCRYPTION_KEY)\n";
+    $written++;
+} else {
+    echo "  skip   config/.env\n";
+    $skipped++;
+}
+
+$gitignore = "$projectRoot/.gitignore";
+if (!is_file($gitignore)) {
+    file_put_contents($gitignore, "/vendor/\n/config/.env\n/storage/\n");
+    echo "  write  .gitignore\n";
+    $written++;
+}
+
+echo "\n{$written} written, {$skipped} skipped.\n\n";
+echo "Next:\n";
+echo "  1. Fill in DB_* and APP_URL in config/.env\n";
+echo "  2. php scripts/init-db.php\n";
+echo "  3. php scripts/check-env.php\n";
+echo "  4. php -S localhost:8000 -t public\n";
