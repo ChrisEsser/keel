@@ -1,3 +1,12 @@
 /vendor/
 /config/.env
-/storage/
+
+# The log providers write here and create nothing: bin/keel used to mkdir these at scaffold time,
+# and a clone has no scaffold step. Ship the directories, ignore what lands in them -- otherwise a
+# fresh clone fails check-env on three writability checks before it has done anything wrong.
+/storage/mail/*
+!/storage/mail/.gitkeep
+/storage/sms/*
+!/storage/sms/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
