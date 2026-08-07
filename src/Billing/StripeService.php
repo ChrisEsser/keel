@@ -35,8 +35,10 @@ use Stripe\StripeClient;
  *
  * ## Requires stripe/stripe-php
  *
- * The only part of Keel that does, which is why it is a `suggest` and not a `require`. An
- * application that never sets STRIPE_SECRET_KEY never constructs this class.
+ * The only part of the framework that does. It is a hard `require` anyway: as a `suggest` it was a
+ * class that fataled the first time anyone turned billing on, and a baseline you clone should not
+ * have a dependency you discover by hitting it. An application that never sets STRIPE_SECRET_KEY
+ * never constructs this class, and can drop the package from composer.json.
  */
 class StripeService
 {

@@ -1,4 +1,0 @@
-# Not part of the distributed package.
-/tests           export-ignore
-/phpstan.neon    export-ignore
-/.gitattributes  export-ignore
