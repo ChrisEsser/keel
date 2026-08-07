@@ -40,7 +40,7 @@ git init && git add -A && git commit -m "Start from Keel"
 Put your own name in `composer.json`, and replace `LICENSE` if MIT isn't what you want. Then:
 
 ```bash
-composer install                    # Stripe, PHPStan, and the autoloader
+composer install                    # Stripe and the autoloader — that's the whole dependency list
 cp config/.env.example config/.env
 php scripts/generate-app-key.php    # paste the line it prints into config/.env
 ```
@@ -171,9 +171,14 @@ Apache with `mod_rewrite`, or any server that routes everything to `public/index
 
 ```bash
 composer install
-vendor/bin/phpstan analyse     # level 5, clean
 php tests/resolve.php          # every class loads and every referenced type resolves
 ```
+
+`resolve.php` is the whole test suite, and deliberately so — no PHPUnit, no static analyser, no
+dev dependencies at all. It catches the failure this codebase actually has (a class or a type
+reference that doesn't resolve, usually after a rename or a move) and nothing else. Reach for a
+real analyser when you have a real reason; installing one costs 47MB of `vendor/` and a tool you
+run twice a year.
 
 ## License
 

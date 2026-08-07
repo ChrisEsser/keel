@@ -31,8 +31,5 @@
         "optimize-autoloader": true,
         "sort-packages": true
     },
-    "minimum-stability": "stable",
-    "require-dev": {
-        "phpstan/phpstan": "^2.2"
-    }
+    "minimum-stability": "stable"
 }
