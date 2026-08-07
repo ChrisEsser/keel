@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Accounts\Model\BackupCodeModel;
-use Keel\Accounts\Model\MembershipModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\RememberTokenModel;
-use Keel\Accounts\Model\TwoFactorMethod;
-use Keel\Accounts\Model\UserModel;
-use Keel\Accounts\Service\AdminLog;
-use Keel\Auth;
-use Keel\Http\Errors;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\View\View;
+use Framework\Accounts\Model\BackupCodeModel;
+use Framework\Accounts\Model\MembershipModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\RememberTokenModel;
+use Framework\Accounts\Model\TwoFactorMethod;
+use Framework\Accounts\Model\UserModel;
+use Framework\Accounts\Service\AdminLog;
+use Framework\Auth;
+use Framework\Http\Errors;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\View\View;
 
 class UserController
 {

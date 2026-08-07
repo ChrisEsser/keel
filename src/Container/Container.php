@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Container;
+namespace Framework\Container;
 
 use Closure;
 use ReflectionClass;

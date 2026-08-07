@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Keel\Billing;
+namespace Framework\Billing;
 
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\OrgGuard;
-use Keel\Auth;
-use Keel\Http\Request;
-use Keel\Http\Response;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\OrgGuard;
+use Framework\Auth;
+use Framework\Http\Request;
+use Framework\Http\Response;
 
 /**
  * The HTTP surface of the subscription: JSON endpoints for the billing panel, the redirect-return
@@ -147,7 +147,7 @@ class BillingController
         try {
             $url = $this->stripe->createPortalSession(
                 $org,
-                \Keel\Host::appUrl('/organizations/' . $org->uid . '/dashboard')
+                \Framework\Host::appUrl('/organizations/' . $org->uid . '/dashboard')
             );
         } catch (\Throwable $e) {
             return Response::json(['success' => false, 'message' => $e->getMessage()], 500);

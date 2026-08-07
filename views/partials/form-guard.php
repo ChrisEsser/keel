@@ -1,6 +1,6 @@
 <?php
 /**
- * Bot-defence fields for the public platform forms, checked by Keel\Accounts\Service\PublicFormGuard.
+ * Bot-defence fields for the public platform forms, checked by Framework\Accounts\Service\PublicFormGuard.
  * Drop one of these inside every logged-out <form> alongside Csrf::field():
  *
  *     <?= $this->insert('partials/form-guard') ?>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($title ?? \Keel\Brand::name(), ENT_QUOTES, 'UTF-8') ?></title>
+    <title><?= htmlspecialchars($title ?? \Framework\Brand::name(), ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="icon" href="/img/favicon/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
@@ -17,7 +17,7 @@
 <body class="guest-layout">
     <a class="guest-brand" href="/">
         <img src="/img/logo-mark.svg" alt="" class="guest-brand-mark">
-        <span class="wordmark"><?= \Keel\Brand::name() ?></span>
+        <span class="wordmark"><?= \Framework\Brand::name() ?></span>
     </a>
     <div class="guest-card">
         <?= $content ?>

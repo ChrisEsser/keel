@@ -14,10 +14,10 @@
  * @var string      $content
  */
 
-$appUrl = \Keel\Host::appUrl();
-$appDomain = \Keel\Host::appDomain();
-$canonical = \Keel\Host::requestScheme() . '://' . $appDomain . strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
-$brand = \Keel\Brand::name();
+$appUrl = \Framework\Host::appUrl();
+$appDomain = \Framework\Host::appDomain();
+$canonical = \Framework\Host::requestScheme() . '://' . $appDomain . strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+$brand = \Framework\Brand::name();
 $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>

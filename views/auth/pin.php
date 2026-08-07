@@ -12,7 +12,7 @@
         <input id="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autofocus autocomplete="off" data-code-input>
     </div>
     <div class="form-actions">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect ?? '') ?>">
         <button type="submit" class="btn-primary"><i data-lucide="log-in"></i> Continue</button>
     </div>

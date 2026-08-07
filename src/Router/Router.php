@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Keel\Router;
+namespace Framework\Router;
 
-use Keel\Http\Errors;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\Container\Container;
+use Framework\Http\Errors;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\Container\Container;
 
 class Router
 {

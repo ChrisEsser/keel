@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Mail;
+namespace Framework\Mail;
 
 class MailgunProvider implements MailProviderInterface, BatchMailProviderInterface
 {

@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Accounts\Model\MembershipModel;
-use Keel\Accounts\OrgGuard;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\Role;
-use Keel\Accounts\Model\UserModel;
-use Keel\Accounts\Service\AdminLog;
-use Keel\Auth;
-use Keel\Http\Errors;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\View\View;
+use Framework\Accounts\Model\MembershipModel;
+use Framework\Accounts\OrgGuard;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\Role;
+use Framework\Accounts\Model\UserModel;
+use Framework\Accounts\Service\AdminLog;
+use Framework\Auth;
+use Framework\Http\Errors;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\View\View;
 
 // Organization CRUD, the member roster, and ownership transfer.
 //

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
 // Single owner of the APP_URL <-> APP_DOMAIN relationship. Two host families share one
 // DocumentRoot and one front controller:

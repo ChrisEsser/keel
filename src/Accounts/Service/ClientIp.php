@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
 // The visitor's real IP address, resolved through the reverse proxy.
 //

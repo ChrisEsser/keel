@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Model;
+namespace Framework\Accounts\Model;
 
-use Keel\Model\Model;
+use Framework\Model\Model;
 
 // Sliding-window attempt counter behind the public-form rate limits (see the
 // create_rate_limit_hits migration for the schema rationale). Extends Model only for the shared

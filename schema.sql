@@ -9,8 +9,8 @@
 --   * Every table has an integer `id` (internal, the foreign-key target) AND a `uid` UUID
 --     (public-facing). URLs and API responses use `uid`. A sequential integer in a URL tells
 --     anyone who looks how many rows you have and invites them to walk the rest.
---   * `deleted TINYINT(1)` is a soft delete. Keel\Model\Model filters it on every read.
---   * Timestamps are DATETIME in UTC. Keel\Database pins the MySQL session to '+00:00' on every
+--   * `deleted TINYINT(1)` is a soft delete. Framework\Model\Model filters it on every read.
+--   * Timestamps are DATETIME in UTC. Framework\Database pins the MySQL session to '+00:00' on every
 --     connection, so PHP-written and MySQL-written times agree — see the long comment there.
 --   * utf8mb4 everywhere. Not utf8, which is three bytes and cannot store an emoji.
 
@@ -26,7 +26,7 @@ CREATE TABLE `users` (
     `last_name`                    VARCHAR(255) NOT NULL DEFAULT '',
     `email`                        VARCHAR(255) NOT NULL,
     `password`                     VARCHAR(255) NOT NULL DEFAULT '',
-    -- Platform staff. Read through Keel\Auth::isAdmin(), which asks about the REAL logged-in user
+    -- Platform staff. Read through Framework\Auth::isAdmin(), which asks about the REAL logged-in user
     -- so an impersonated session can never gain admin.
     `is_admin`                     TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -41,7 +41,7 @@ CREATE TABLE `users` (
     `pin_locked_until`             DATETIME NULL,
 
     -- Two-factor. `two_factor_secret` is a TOTP seed and is encrypted at rest by
-    -- Keel\Security\Crypto — it is TEXT because ciphertext is longer than the seed.
+    -- Framework\Security\Crypto — it is TEXT because ciphertext is longer than the seed.
     `two_factor_enabled`           TINYINT(1) NOT NULL DEFAULT 0,
     `two_factor_method`            VARCHAR(10) NOT NULL DEFAULT 'none',
     `two_factor_secret`            TEXT NULL,
@@ -245,7 +245,7 @@ CREATE TABLE `backup_codes` (
 -- ── admin_events ──────────────────────────────────────────────────────────────────────────────
 --
 -- The activity log. Append-only: nothing in the application updates or deletes a row here except
--- the retention prune. Written through Keel\Accounts\Service\AdminLog, never directly.
+-- the retention prune. Written through Framework\Accounts\Service\AdminLog, never directly.
 --
 -- The labels are DENORMALIZED on purpose. A log that JOINs to render is a log that changes when
 -- the rows it points at change — rename an organization and last year's entries silently start
@@ -282,7 +282,7 @@ CREATE TABLE `admin_events` (
 -- ── rate_limit_hits ───────────────────────────────────────────────────────────────────────────
 --
 -- One row per attempt, in a named bucket. Counted over a sliding window by
--- Keel\Accounts\Service\PublicFormGuard and pruned by age. Email-scoped buckets store a HASH of
+-- Framework\Accounts\Service\PublicFormGuard and pruned by age. Email-scoped buckets store a HASH of
 -- the address, so this table can never become a list of contactable addresses.
 
 CREATE TABLE `rate_limit_hits` (

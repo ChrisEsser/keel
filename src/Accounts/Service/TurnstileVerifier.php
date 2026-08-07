@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
 // Server-side verification of a Cloudflare Turnstile challenge response. Turnstile is applied
 // automatically to every published form and to the products checkout whenever it's configured

@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="form-actions">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <button type="submit" class="btn-primary"><i data-lucide="check"></i> Reset Password</button>
     </div>
 </form>

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Keel\Marketing;
+namespace Framework\Marketing;
 
-use Keel\Host;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\View\View;
+use Framework\Host;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\View\View;
 
 /**
  * The public surface, served on the apex domain by its own router.
@@ -27,7 +27,7 @@ class MarketingController
     public function index(Request $request): Response
     {
         return Response::html($this->view->render('marketing/index', [
-            'title' => \Keel\Brand::name(),
+            'title' => \Framework\Brand::name(),
             // Passed in rather than read in the template, so a page that gets extracted later has
             // one obvious dependency instead of a call to Host buried in its markup.
             'appUrl' => Host::appUrl(),

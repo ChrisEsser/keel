@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Accounts\Model\BackupCodeModel;
-use Keel\Accounts\Model\LoginChallengeModel;
-use Keel\Accounts\Model\PasswordResetModel;
-use Keel\Accounts\Model\TwoFactorMethod;
-use Keel\Accounts\Model\UserModel;
-use Keel\Accounts\Service\AdminLog;
-use Keel\Accounts\Service\ClientIp;
-use Keel\Accounts\Service\PublicFormGuard;
-use Keel\Auth;
-use Keel\Csrf;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\Accounts\Service\EmailBlocks;
-use Keel\Mail\AppMailer;
-use Keel\Security\Crypto;
-use Keel\Security\Totp;
-use Keel\Sms\Sms;
-use Keel\View\View;
+use Framework\Accounts\Model\BackupCodeModel;
+use Framework\Accounts\Model\LoginChallengeModel;
+use Framework\Accounts\Model\PasswordResetModel;
+use Framework\Accounts\Model\TwoFactorMethod;
+use Framework\Accounts\Model\UserModel;
+use Framework\Accounts\Service\AdminLog;
+use Framework\Accounts\Service\ClientIp;
+use Framework\Accounts\Service\PublicFormGuard;
+use Framework\Auth;
+use Framework\Csrf;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\Accounts\Service\EmailBlocks;
+use Framework\Mail\AppMailer;
+use Framework\Security\Crypto;
+use Framework\Security\Totp;
+use Framework\Sms\Sms;
+use Framework\View\View;
 
 class AuthController
 {

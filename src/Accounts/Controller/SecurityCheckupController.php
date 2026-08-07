@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Auth;
-use Keel\Csrf;
-use Keel\Http\Request;
-use Keel\Http\Response;
+use Framework\Auth;
+use Framework\Csrf;
+use Framework\Http\Request;
+use Framework\Http\Response;
 
 // Snooze for the post-login two-factor offer.
 //

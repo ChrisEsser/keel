@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Mail;
+namespace Framework\Mail;
 
 // A thin seam over MailProviderInterface: one place to send a single message, with the provider
 // (log in dev, Mailgun in prod) swapped underneath.
@@ -10,7 +10,7 @@ namespace Keel\Mail;
 // This class briefly had two methods. The other send() was plaintext-only, took three arguments,
 // and defaulted the From to MAIL_FROM_* -- and because it was the shortest path, every
 // transactional email in the app used it, which is precisely why none of them had an HTML part or
-// could send as anyone but the platform. They now compose through Keel\Mail\AppMailer, which
+// could send as anyone but the platform. They now compose through Framework\Mail\AppMailer, which
 // builds a multipart message and resolves its own From, so that method lost its last caller and
 // was deleted rather than left as a shortcut back to unstyled, platform-only mail. What remains
 // took its name, because sending is all it does.

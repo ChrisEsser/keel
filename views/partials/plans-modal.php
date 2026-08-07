@@ -5,7 +5,7 @@
  * Keel ships one recurring price with a quantity, because that is the smallest shape that is
  * genuinely correct end to end -- the SetupIntent ordering, the 3-D Secure redirect, the return
  * path -- and those are the parts worth inheriting. What you sell is yours to decide: add a price
- * map and more lines here and in Keel\Billing\StripeService, and the flow around them is unchanged.
+ * map and more lines here and in Framework\Billing\StripeService, and the flow around them is unchanged.
  *
  * PRICE_LABEL and PRICE_EACH below are display copy only. The amount actually charged is whatever
  * the Stripe price at STRIPE_PRICE_ID says, and Stripe is the authority -- these two constants

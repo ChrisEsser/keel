@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
-use Keel\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\OrganizationModel;
 
 // Computes the account-level warnings shown in the banner above every page header (see
 // views/partials/account-alerts.php). These mirror the dunning EMAILS an org already receives --

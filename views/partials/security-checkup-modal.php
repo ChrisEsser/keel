@@ -57,7 +57,7 @@ $smsAvailable = ($_ENV['TWILIO_ACCOUNT_SID'] ?? '') !== '' && ($_ENV['TWILIO_AUT
 <script>
 (() => {
     const overlay = document.getElementById('security-checkup-overlay');
-    const CSRF = <?= json_encode(\Keel\Csrf::token()) ?>;
+    const CSRF = <?= json_encode(\Framework\Csrf::token()) ?>;
     let settled = false;   // the snooze is posted at most once, however they leave
 
     // Deferring is a background fact, not something to wait on or report: the modal closes either

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
 // The result of a PublicFormGuard::check(). Deliberately not a Response: each caller renders its
 // own view, so the guard reports what it found and the controller decides how that looks.

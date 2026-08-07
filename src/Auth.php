@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
-use Keel\Accounts\Model\RememberTokenModel;
-use Keel\Accounts\Model\UserModel;
-use Keel\Accounts\Service\ClientIp;
+use Framework\Accounts\Model\RememberTokenModel;
+use Framework\Accounts\Model\UserModel;
+use Framework\Accounts\Service\ClientIp;
 
 final class Auth
 {

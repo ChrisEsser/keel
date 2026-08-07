@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
 // Session-backed navigation history ("rewind" stack). Screens that are legitimate
 // return targets record themselves (see views/layouts/main.php), and screens whose

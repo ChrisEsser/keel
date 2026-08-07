@@ -8,20 +8,20 @@ declare(strict_types=1);
  * Returns a built Container. Two things live here and nothing else: singletons the application
  * needs, and the route tables for each surface.
  *
- * Keel's own routes are registered by Keel\Routes::app() and Keel\Routes::marketing(). Add YOUR
+ * Keel's own routes are registered by Framework\Routes::app() and Framework\Routes::marketing(). Add YOUR
  * application's routes in the marked blocks below — the split keeps a framework upgrade from
  * touching your file, and keeps your routes readable next to each other rather than interleaved
  * with the framework's forty.
  */
 
-use Keel\Accounts\Service\PublicFormGuard;
-use Keel\Container\Container;
-use Keel\Http\Errors;
-use Keel\Mail\Mailer;
-use Keel\Router\Router;
-use Keel\Routes;
-use Keel\Sms\Sms;
-use Keel\View\View;
+use Framework\Accounts\Service\PublicFormGuard;
+use Framework\Container\Container;
+use Framework\Http\Errors;
+use Framework\Mail\Mailer;
+use Framework\Router\Router;
+use Framework\Routes;
+use Framework\Sms\Sms;
+use Framework\View\View;
 
 $root = dirname(__DIR__);
 $container = new Container();
@@ -46,20 +46,20 @@ $container->singleton(View::class, function () use ($root, $container) {
 // the container could resolve. With both Turnstile keys blank, isConfigured() is false and the
 // other three defenses still apply.
 
-$container->singleton(\Keel\Accounts\Service\TurnstileVerifier::class, fn() => new \Keel\Accounts\Service\TurnstileVerifier(
+$container->singleton(\Framework\Accounts\Service\TurnstileVerifier::class, fn() => new \Framework\Accounts\Service\TurnstileVerifier(
     $_ENV['TURNSTILE_SECRET_KEY'] ?? '',
     $_ENV['TURNSTILE_SITE_KEY'] ?? '',
 ));
 
 $container->singleton(PublicFormGuard::class, fn($c) => new PublicFormGuard(
-    $c->get(\Keel\Accounts\Service\TurnstileVerifier::class),
+    $c->get(\Framework\Accounts\Service\TurnstileVerifier::class),
 ));
 
 // ── Mail ──────────────────────────────────────────────────────────────────────────────────────
 
-$container->singleton(\Keel\Mail\MailProviderInterface::class, function () use ($root) {
+$container->singleton(\Framework\Mail\MailProviderInterface::class, function () use ($root) {
     return match ($_ENV['MAIL_PROVIDER'] ?? 'log') {
-        'mailgun' => new \Keel\Mail\MailgunProvider(
+        'mailgun' => new \Framework\Mail\MailgunProvider(
             $_ENV['MAILGUN_API_KEY'] ?? '',
             $_ENV['MAILGUN_DOMAIN'] ?? '',
             $_ENV['MAILGUN_REGION'] ?? 'us',
@@ -67,26 +67,26 @@ $container->singleton(\Keel\Mail\MailProviderInterface::class, function () use (
         // The default writes to storage/mail/YYYY-MM-DD.log instead of sending. That is the right
         // default for a framework: a fresh checkout that silently mails real people while someone
         // is testing a password reset is a worse failure than one that mails nobody.
-        default => new \Keel\Mail\LogMailProvider($root . '/storage'),
+        default => new \Framework\Mail\LogMailProvider($root . '/storage'),
     };
 });
 
-$container->singleton(Mailer::class, fn($c) => new Mailer($c->get(\Keel\Mail\MailProviderInterface::class)));
+$container->singleton(Mailer::class, fn($c) => new Mailer($c->get(\Framework\Mail\MailProviderInterface::class)));
 
 // ── SMS (only needed for two-factor by text) ──────────────────────────────────────────────────
 
-$container->singleton(\Keel\Sms\SmsProviderInterface::class, function () use ($root) {
+$container->singleton(\Framework\Sms\SmsProviderInterface::class, function () use ($root) {
     return match ($_ENV['SMS_PROVIDER'] ?? 'log') {
-        'twilio' => new \Keel\Sms\TwilioSmsProvider(
+        'twilio' => new \Framework\Sms\TwilioSmsProvider(
             $_ENV['TWILIO_ACCOUNT_SID'] ?? '',
             $_ENV['TWILIO_AUTH_TOKEN'] ?? '',
             $_ENV['TWILIO_FROM_NUMBER'] ?? '',
         ),
-        default => new \Keel\Sms\LogSmsProvider($root . '/storage'),
+        default => new \Framework\Sms\LogSmsProvider($root . '/storage'),
     };
 });
 
-$container->singleton(Sms::class, fn($c) => new Sms($c->get(\Keel\Sms\SmsProviderInterface::class)));
+$container->singleton(Sms::class, fn($c) => new Sms($c->get(\Framework\Sms\SmsProviderInterface::class)));
 
 // ── Errors ────────────────────────────────────────────────────────────────────────────────────
 

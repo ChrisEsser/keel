@@ -14,7 +14,7 @@
     </div>
     <?= $this->insert('partials/form-guard') ?>
     <div class="form-actions">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <button type="submit" class="btn-primary"><i data-lucide="mail"></i> Send Reset Link</button>
     </div>
 </form>

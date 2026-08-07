@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Auth;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\View\View;
+use Framework\Auth;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\View\View;
 
 /**
  * Serves modal partials on demand to `ModalLoader.open(name)` in public/js/app.js.

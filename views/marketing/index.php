@@ -12,7 +12,7 @@
  */
 
 $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
-$brand = \Keel\Brand::name();
+$brand = \Framework\Brand::name();
 ?>
 <section class="marketing-section">
     <div class="wrap">

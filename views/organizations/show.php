@@ -11,11 +11,11 @@
  * that thing -- add a panel here rather than building a second staff page, and the person on the
  * phone keeps one screen open instead of three.
  *
- * @var \Keel\Accounts\Model\OrganizationModel $org
- * @var \Keel\Accounts\Model\UserModel|null $owner
- * @var list<array{membership: \Keel\Accounts\Model\MembershipModel, user: \Keel\Accounts\Model\UserModel}> $team
+ * @var \Framework\Accounts\Model\OrganizationModel $org
+ * @var \Framework\Accounts\Model\UserModel|null $owner
+ * @var list<array{membership: \Framework\Accounts\Model\MembershipModel, user: \Framework\Accounts\Model\UserModel}> $team
  * @var int $pendingInvites
- * @var list<\Keel\Accounts\Model\AdminEventModel> $activity
+ * @var list<\Framework\Accounts\Model\AdminEventModel> $activity
  */
 
 $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
@@ -95,7 +95,7 @@ $hasBilling = $org->stripe_customer_id !== null || $org->subscription_status !==
                                 </td>
                                 <td>
                                     <?php // Straight to what this person sees, without a detour via /users. ?>
-                                    <?php if (\Keel\Auth::actualUser()?->uid !== $u->uid): ?>
+                                    <?php if (\Framework\Auth::actualUser()?->uid !== $u->uid): ?>
                                         <button class="btn btn-ghost btn-icon" data-tooltip="Sign in as them" onclick="impersonateUser(<?= $e(json_encode($u->email)) ?>)"><i data-lucide="user-check"></i></button>
                                     <?php endif; ?>
                                     <button class="btn btn-ghost-danger btn-icon" data-tooltip="Remove" onclick="removeMembership('<?= $e($m->uid) ?>', this)"><i data-lucide="trash-2"></i></button>

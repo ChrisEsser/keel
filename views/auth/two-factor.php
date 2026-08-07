@@ -21,7 +21,7 @@
         <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autofocus autocomplete="one-time-code" data-code-input data-autosubmit>
     </div>
     <div class="form-actions">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect ?? '') ?>">
         <button type="submit" class="btn-primary"><i data-lucide="shield-check"></i> Verify</button>
     </div>
@@ -29,7 +29,7 @@
 
 <?php if ($method === 'sms'): ?>
 <form method="POST" action="/login/2fa/resend" style="margin-top:0.5rem;">
-    <?= \Keel\Csrf::field() ?>
+    <?= \Framework\Csrf::field() ?>
     <button type="submit" class="btn-link">Resend code</button>
 </form>
 <?php endif; ?>
@@ -44,7 +44,7 @@
             <input id="backup_code" name="backup_code" type="text" autocomplete="off">
         </div>
         <div class="form-actions">
-            <?= \Keel\Csrf::field() ?>
+            <?= \Framework\Csrf::field() ?>
             <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect ?? '') ?>">
             <button type="submit" class="btn-primary"><i data-lucide="key"></i> Verify with backup code</button>
         </div>

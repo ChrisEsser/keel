@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
 // The application's name, in one place.
 //

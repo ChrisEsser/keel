@@ -8,7 +8,7 @@
 // button -- others get an "ask an owner" nudge baked into the message. Not dismissible: these
 // persist until the underlying problem is resolved.
 
-$org = \Keel\Accounts\Model\OrganizationModel::findByUid($sidebarOrg['uid']);
+$org = \Framework\Accounts\Model\OrganizationModel::findByUid($sidebarOrg['uid']);
 if ($org === null) {
     return;
 }
@@ -16,10 +16,10 @@ if ($org === null) {
 // effectiveIsAdmin, not isAdmin: this decides what to DRAW, and an admin who is impersonating
 // should see the screen the customer sees. OrgGuard is the access-control answer and is checked
 // again server-side by every endpoint behind these buttons.
-$canManageBilling = \Keel\Auth::effectiveIsAdmin()
-    || (\Keel\Accounts\OrgGuard::membership($org)?->role->canManageBilling() ?? false);
+$canManageBilling = \Framework\Auth::effectiveIsAdmin()
+    || (\Framework\Accounts\OrgGuard::membership($org)?->role->canManageBilling() ?? false);
 
-$accountAlerts = (new \Keel\Accounts\Service\AccountAlerts())->forOrg($org, $canManageBilling);
+$accountAlerts = (new \Framework\Accounts\Service\AccountAlerts())->forOrg($org, $canManageBilling);
 if ($accountAlerts === []) {
     return;
 }

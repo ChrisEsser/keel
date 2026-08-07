@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Keel\Auth;
-use Keel\Database;
-use Keel\Env;
-use Keel\Host;
-use Keel\HostKind;
-use Keel\Http\Emitter;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\Model\Model;
-use Keel\Router\Router;
+use Framework\Auth;
+use Framework\Database;
+use Framework\Env;
+use Framework\Host;
+use Framework\HostKind;
+use Framework\Http\Emitter;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\Model\Model;
+use Framework\Router\Router;
 
 Env::load(__DIR__ . '/../config/.env');
 
 // Which surface this request is for. Decided first, off nothing but $_ENV and the Host header,
-// because it governs how much of the application is worth booting -- see Keel\Host::classify().
+// because it governs how much of the application is worth booting -- see Framework\Host::classify().
 // An install that never sets APP_DOMAIN gets HostKind::App for everything, which is the right
 // default: one host, one router, no ceremony.
 $host = Host::normalize($_SERVER['HTTP_HOST'] ?? '');

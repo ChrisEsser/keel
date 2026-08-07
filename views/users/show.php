@@ -15,7 +15,7 @@ $roleBadgeClass = ['owner' => 'primary', 'admin' => 'secondary', 'user' => 'seco
         <a href="/activity?user=<?= htmlspecialchars($user['uid']) ?>" class="btn btn-ghost-primary"><i data-lucide="history"></i> Activity</a>
         <?php // Sign in as this person to see exactly what they see. Admin-only page; hidden on your
               // own record since impersonating yourself does nothing. ?>
-        <?php if (\Keel\Auth::actualUser()?->uid !== $user['uid']): ?>
+        <?php if (\Framework\Auth::actualUser()?->uid !== $user['uid']): ?>
         <button class="btn btn-ghost-primary" onclick="impersonateUser(<?= htmlspecialchars(json_encode($user['email']), ENT_QUOTES) ?>)"><i data-lucide="user-check"></i> Impersonate</button>
         <?php endif; ?>
         <button class="btn btn-ghost-primary" onclick="ModalLoader.open('user-settings', '<?= htmlspecialchars($user['uid']) ?>')"><i data-lucide="settings"></i> Settings</button>

@@ -18,13 +18,13 @@
         "ext-pdo": "*"
     },
     "suggest": {
-        "stripe/stripe-php": "Required only for Keel\\Billing — subscriptions, payment methods and webhooks (^20.3)",
-        "ext-sodium": "Required only for Keel\\Security\\Crypto — encrypting secrets at rest, e.g. TOTP seeds",
+        "stripe/stripe-php": "Required only for Framework\\Billing — subscriptions, payment methods and webhooks (^20.3)",
+        "ext-sodium": "Required only for Framework\\Security\\Crypto — encrypting secrets at rest, e.g. TOTP seeds",
         "ext-curl": "Required only for the Mailgun and Twilio providers"
     },
     "autoload": {
         "psr-4": {
-            "Keel\\": "src/"
+            "Framework\\": "src/"
         }
     },
     "bin": ["bin/keel"],

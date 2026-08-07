@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Http;
+namespace Framework\Http;
 
 final class Response
 {

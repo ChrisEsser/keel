@@ -20,9 +20,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Keel\Database;
-use Keel\Env;
-use Keel\Host;
+use Framework\Database;
+use Framework\Env;
+use Framework\Host;
 
 const EXPECTED_PHP_MINOR = '8.4';
 
@@ -37,8 +37,8 @@ const REQUIRED_EXTENSIONS = [
 
 // Needed only by parts an application can choose not to use.
 const OPTIONAL_EXTENSIONS = [
-    'sodium'   => 'Keel\Security\Crypto — encrypts TOTP secrets at rest. Required if you use two-factor.',
-    'curl'     => 'stripe/stripe-php. Required if you use Keel\Billing.',
+    'sodium'   => 'Framework\Security\Crypto — encrypts TOTP secrets at rest. Required if you use two-factor.',
+    'curl'     => 'stripe/stripe-php. Required if you use Framework\Billing.',
     'gd'       => 'image work. Not used by the framework itself.',
     'fileinfo' => 'MIME sniffing for uploads. Not used by the framework itself.',
 ];
@@ -136,7 +136,7 @@ if ($pdo !== null) {
     check(
         'MySQL clock matches PHP',
         abs($skew) <= 2,
-        $skew === 0 ? 'both UTC' : sprintf('off by %+ds — Keel\Database::connect() should pin it', $skew)
+        $skew === 0 ? 'both UTC' : sprintf('off by %+ds — Framework\Database::connect() should pin it', $skew)
     );
 }
 

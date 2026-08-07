@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\View;
+namespace Framework\View;
 
 class View
 {

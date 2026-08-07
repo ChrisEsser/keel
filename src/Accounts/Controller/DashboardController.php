@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Accounts\Model\MembershipModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\Role;
-use Keel\Auth;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\View\View;
+use Framework\Accounts\Model\MembershipModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\Role;
+use Framework\Auth;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\View\View;
 
 class DashboardController
 {

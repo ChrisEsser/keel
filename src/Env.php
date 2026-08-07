@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
 /**
  * A small .env parser: KEY=value lines into $_ENV.

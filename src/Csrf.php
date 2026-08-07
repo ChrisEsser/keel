@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
 class Csrf
 {

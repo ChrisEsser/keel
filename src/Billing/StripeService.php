@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Keel\Billing;
+namespace Framework\Billing;
 
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Service\AdminLog;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Service\AdminLog;
 use Stripe\StripeClient;
 
 /**

@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Keel;
+namespace Framework;
 
-use Keel\Accounts\Controller\ActivityController;
-use Keel\Accounts\Controller\AuthController;
-use Keel\Accounts\Controller\DashboardController;
-use Keel\Accounts\Controller\InvitationController;
-use Keel\Accounts\Controller\MembershipController;
-use Keel\Accounts\Controller\ModalController;
-use Keel\Accounts\Controller\OrgAdminController;
-use Keel\Accounts\Controller\OrganizationController;
-use Keel\Accounts\Controller\SecurityCheckupController;
-use Keel\Accounts\Controller\SignupController;
-use Keel\Accounts\Controller\UserController;
-use Keel\Billing\BillingController;
-use Keel\Marketing\MarketingController;
-use Keel\Router\Router;
+use Framework\Accounts\Controller\ActivityController;
+use Framework\Accounts\Controller\AuthController;
+use Framework\Accounts\Controller\DashboardController;
+use Framework\Accounts\Controller\InvitationController;
+use Framework\Accounts\Controller\MembershipController;
+use Framework\Accounts\Controller\ModalController;
+use Framework\Accounts\Controller\OrgAdminController;
+use Framework\Accounts\Controller\OrganizationController;
+use Framework\Accounts\Controller\SecurityCheckupController;
+use Framework\Accounts\Controller\SignupController;
+use Framework\Accounts\Controller\UserController;
+use Framework\Billing\BillingController;
+use Framework\Marketing\MarketingController;
+use Framework\Router\Router;
 
 /**
  * Keel's own routes, in one place so an application's config/container.php can register them with

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Keel\Billing;
+namespace Framework\Billing;
 
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Service\AdminLog;
-use Keel\Accounts\Service\EmailBlocks;
-use Keel\Host;
-use Keel\Mail\AppMailer;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Service\AdminLog;
+use Framework\Accounts\Service\EmailBlocks;
+use Framework\Host;
+use Framework\Mail\AppMailer;
 
 // Every email an org gets on the way from a failed payment to losing access, so no step of that
 // journey is ever silent:

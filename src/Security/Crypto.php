@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Security;
+namespace Framework\Security;
 
 // Reversible encryption for secrets that must be recovered at runtime (e.g. TOTP secrets).
 // Not for passwords or tokens -- those stay one-way (password_hash/hash).

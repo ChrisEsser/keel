@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
 // The block vocabulary shared by both transactional email shells. Call sites compose meaning --
 // heading, paragraph, button -- and never write table markup, so the button style (and

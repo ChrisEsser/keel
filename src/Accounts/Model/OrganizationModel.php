@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Model;
+namespace Framework\Accounts\Model;
 
-use Keel\Model\Model;
+use Framework\Model\Model;
 
 // An organization is the unit a subscription is bought by and a team belongs to. Users don't pay
 // for anything and don't own anything; organizations do. Every app built on Keel that has more

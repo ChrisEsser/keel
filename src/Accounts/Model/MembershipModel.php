@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Model;
+namespace Framework\Accounts\Model;
 
-use Keel\Model\Model;
+use Framework\Model\Model;
 
 class MembershipModel extends Model
 {
@@ -48,7 +48,7 @@ class MembershipModel extends Model
                 // silently drops the previous owner to admin, and they find out when something
                 // they used to be able to do stops working.
                 $demoted = UserModel::find($member->user_id);
-                \Keel\Accounts\Service\AdminLog::record('member.role_changed',
+                \Framework\Accounts\Service\AdminLog::record('member.role_changed',
                     ($demoted?->fullName() ?? 'A member') . ' was demoted from owner to admin when the owner role moved', [
                         'org' => OrganizationModel::find($member->org_id),
                         'user' => $demoted,

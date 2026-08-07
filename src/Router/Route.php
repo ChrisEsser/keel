@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Router;
+namespace Framework\Router;
 
 class Route
 {

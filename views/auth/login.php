@@ -25,7 +25,7 @@
     <a href="/login/forgot-password" class="auth-link-sm">Forgot your password?</a>
     <?= $this->insert('partials/form-guard') ?>
     <div class="form-actions">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect ?? '') ?>">
         <button type="submit" class="btn-primary"><i data-lucide="log-in"></i> Sign In</button>
     </div>

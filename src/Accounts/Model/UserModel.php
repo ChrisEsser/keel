@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Model;
+namespace Framework\Accounts\Model;
 
-use Keel\Model\Model;
+use Framework\Model\Model;
 
 class UserModel extends Model
 {

@@ -74,10 +74,10 @@ organizations, invitations, roles and an audit log, and an empty dashboard to bu
 | Add a screen | `src/Controller/`, `views/`, plus that route |
 | Change the sidebar | Pass `$nav` from your controllers — see the docblock in `views/layouts/main.php` |
 | Change the schema | Add a file to `scripts/migrations/`, run `php scripts/migrate.php` |
-| Change what a role may do | `Keel\Accounts\Model\Role` and `Keel\Accounts\OrgGuard` |
+| Change what a role may do | `Framework\Accounts\Model\Role` and `Framework\Accounts\OrgGuard` |
 | Add to the support hub | `OrgAdminController::show()` and `views/organizations/show.php` |
 
-Keel's own routes live in `Keel\Routes`, so a framework upgrade never touches your file.
+Keel's own routes live in `Framework\Routes`, so a framework upgrade never touches your file.
 
 ---
 
@@ -122,7 +122,7 @@ marketing site on another, each with its own router so neither can reach the oth
 ## The shape
 
 ```
-src/                          The framework — namespace Keel\
+src/                          The framework — namespace Framework\
   Container/                  Reflection-based DI
   Router/                     Route table, {param} matching
   Http/                       Request, Response, Emitter, Errors

@@ -10,7 +10,7 @@ $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
 foreach ($rii as $file) {
     if ($file->getExtension() !== 'php') continue;
     $rel = substr($file->getPathname(), strlen($root) + 1, -4);
-    $classes[] = 'Keel\\' . str_replace('/', '\\', $rel);
+    $classes[] = 'Framework\\' . str_replace('/', '\\', $rel);
 }
 sort($classes);
 

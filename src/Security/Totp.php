@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Security;
+namespace Framework\Security;
 
 // Hand-rolled RFC 6238 TOTP (compatible with Google Authenticator, Authy, 1Password, etc).
 // No external dependency -- keeps the framework's zero-Composer-dependency stance.
@@ -19,7 +19,7 @@ class Totp
 
     // $issuer is what the user sees naming this account in their authenticator app. Required
     // rather than defaulted: this is the framework tier, so it has no business knowing the
-    // application's name -- callers pass Keel\Brand::name().
+    // application's name -- callers pass Framework\Brand::name().
     public static function provisioningUri(string $secret, string $accountEmail, string $issuer): string
     {
         $label = rawurlencode("$issuer:$accountEmail");

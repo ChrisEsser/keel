@@ -20,12 +20,12 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Keel\Accounts\Model\MembershipModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\Role;
-use Keel\Accounts\Model\UserModel;
-use Keel\Env;
-use Keel\Model\Model;
+use Framework\Accounts\Model\MembershipModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\Role;
+use Framework\Accounts\Model\UserModel;
+use Framework\Env;
+use Framework\Model\Model;
 
 Env::load(__DIR__ . '/../config/.env');
 

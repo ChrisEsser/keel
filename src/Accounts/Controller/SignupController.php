@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Accounts\Model\MembershipModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\PendingSignupModel;
-use Keel\Accounts\Model\Role;
-use Keel\Accounts\Model\UserModel;
-use Keel\Accounts\Service\ClientIp;
-use Keel\Accounts\Service\PublicFormGuard;
-use Keel\Accounts\Service\AdminLog;
-use Keel\Auth;
-use Keel\Csrf;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\Accounts\Service\EmailBlocks;
-use Keel\Mail\AppMailer;
-use Keel\View\View;
+use Framework\Accounts\Model\MembershipModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\PendingSignupModel;
+use Framework\Accounts\Model\Role;
+use Framework\Accounts\Model\UserModel;
+use Framework\Accounts\Service\ClientIp;
+use Framework\Accounts\Service\PublicFormGuard;
+use Framework\Accounts\Service\AdminLog;
+use Framework\Auth;
+use Framework\Csrf;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\Accounts\Service\EmailBlocks;
+use Framework\Mail\AppMailer;
+use Framework\View\View;
 
 class SignupController
 {

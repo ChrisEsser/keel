@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Model;
+namespace Framework\Accounts\Model;
 
 enum TwoFactorMethod: string
 {

@@ -12,7 +12,7 @@
 </div>
 
 <template id="organizations-tpl">
-    <?php // The staff hub, not the customer's dashboard -- see Keel\Accounts\Controller\OrgAdminController. ?>
+    <?php // The staff hub, not the customer's dashboard -- see Framework\Accounts\Controller\OrgAdminController. ?>
     <div class="entity-card" data-url="/organizations/{{uid}}">
         <div class="entity-card-header">
             <div class="entity-card-icon"><i data-lucide="building-2"></i></div>

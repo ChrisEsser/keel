@@ -19,7 +19,7 @@
         <input id="password_confirm" name="password_confirm" type="password">
     </div>
     <div class="form-actions">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <button type="submit" class="btn-primary"><i data-lucide="check"></i> Set Password</button>
     </div>
 </form>
@@ -31,7 +31,7 @@
 <p>This verification link has expired. Request a new one and we'll send a fresh link to your inbox.</p>
 
 <form method="POST" action="/verify/<?= htmlspecialchars($token) ?>/resend">
-    <?= \Keel\Csrf::field() ?>
+    <?= \Framework\Csrf::field() ?>
     <?= $this->insert('partials/form-guard') ?>
     <button type="submit" class="btn-primary"><i data-lucide="refresh-cw"></i> Resend Verification Email</button>
 </form>

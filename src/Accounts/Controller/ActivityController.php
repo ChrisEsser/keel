@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Controller;
+namespace Framework\Accounts\Controller;
 
-use Keel\Accounts\Model\AdminEventModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\UserModel;
-use Keel\Accounts\Service\AdminLog;
-use Keel\Auth;
-use Keel\Http\Request;
-use Keel\Http\Response;
-use Keel\View\View;
+use Framework\Accounts\Model\AdminEventModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\UserModel;
+use Framework\Accounts\Service\AdminLog;
+use Framework\Auth;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\View\View;
 
-// Admin-only reader for the platform activity log (Keel\Accounts\Service\AdminLog).
+// Admin-only reader for the platform activity log (Framework\Accounts\Service\AdminLog).
 //
 // Built around a support call, not an audit export: the fastest path from "a customer is telling
 // me something is wrong" to the handful of events that explain it. That means one search box that

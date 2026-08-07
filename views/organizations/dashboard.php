@@ -17,7 +17,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
       // Without this there is no way back up that isn't the browser's Back button. Hidden while
       // impersonating: effectiveIsAdmin() reads the impersonated user, which is the point -- you
       // are supposed to be seeing exactly what they see. ?>
-<?php if (\Keel\Auth::effectiveIsAdmin()): ?>
+<?php if (\Framework\Auth::effectiveIsAdmin()): ?>
     <p style="margin-bottom:1rem;"><a href="/organizations/<?= $e($organization['uid']) ?>"><i data-lucide="arrow-left"></i> Back to the organization</a></p>
 <?php endif; ?>
 

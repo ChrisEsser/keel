@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Keel\Database;
-use Keel\Env;
+use Framework\Database;
+use Framework\Env;
 
 Env::load(__DIR__ . '/../config/.env');
 

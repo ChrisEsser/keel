@@ -35,25 +35,25 @@
 // Every screen in this layout is a legitimate "return target", so record it on the rewind stack.
 // A layout that is deliberately not a return target (a fullscreen editor, say) should not.
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-    \Keel\Nav::record(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+    \Framework\Nav::record(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
 }
 
-$bannerOffset = \Keel\Auth::isImpersonating() ? '50px' : '0px';
+$bannerOffset = \Framework\Auth::isImpersonating() ? '50px' : '0px';
 $navPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
 
 $sidebarOrgs = [];
 $canEditOrg = false;
-if (\Keel\Auth::check() && !\Keel\Auth::effectiveIsAdmin()) {
+if (\Framework\Auth::check() && !\Framework\Auth::effectiveIsAdmin()) {
     // Memberships outlive their organization -- deleting an org doesn't cascade, so a null find()
     // here is a soft-deleted org and the membership must be dropped rather than rendered as a
     // blank, unclickable row.
-    $sidebarOrgs = array_values(array_filter(array_map(function (\Keel\Accounts\Model\MembershipModel $m) {
-        $o = \Keel\Accounts\Model\OrganizationModel::find($m->org_id);
+    $sidebarOrgs = array_values(array_filter(array_map(function (\Framework\Accounts\Model\MembershipModel $m) {
+        $o = \Framework\Accounts\Model\OrganizationModel::find($m->org_id);
         return $o === null ? null : ['uid' => $o->uid, 'name' => $o->displayName(), 'role' => $m->role->value];
-    }, \Keel\Accounts\Model\MembershipModel::findByUser(\Keel\Auth::user()->id))));
+    }, \Framework\Accounts\Model\MembershipModel::findByUser(\Framework\Auth::user()->id))));
 }
 if (isset($sidebarOrg)) {
-    if (\Keel\Auth::isAdmin()) {
+    if (\Framework\Auth::isAdmin()) {
         $canEditOrg = true;
     } else {
         // Every member gets the Settings button. The modal opens for all of them and locks the
@@ -82,7 +82,7 @@ $isActive = static function (array $item) use ($navPath): bool {
 // Keel's own default nav, used when the application doesn't supply one.
 if (!isset($nav)) {
     $nav = [];
-    if (\Keel\Auth::effectiveIsAdmin()) {
+    if (\Framework\Auth::effectiveIsAdmin()) {
         $nav[] = ['section' => 'Admin'];
         $nav[] = ['label' => 'Activity', 'href' => '/activity', 'icon' => 'history'];
         $nav[] = ['label' => 'Organizations', 'href' => '/organizations', 'icon' => 'building-2', 'match' => 'prefix'];
@@ -102,7 +102,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $e($title ?? \Keel\Brand::name()) ?></title>
+    <title><?= $e($title ?? \Framework\Brand::name()) ?></title>
     <link rel="icon" href="/img/favicon/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
@@ -131,9 +131,9 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
 
 <a class="skip-link" href="#main-content">Skip to content</a>
 
-<?php if (\Keel\Auth::isImpersonating()): ?>
+<?php if (\Framework\Auth::isImpersonating()): ?>
     <div class="banner">
-        Impersonating <strong><?= $e(\Keel\Auth::user()?->fullName()) ?></strong>
+        Impersonating <strong><?= $e(\Framework\Auth::user()?->fullName()) ?></strong>
         &nbsp;
         <button onclick="stopImpersonating()"><i data-lucide="x"></i> Stop</button>
     </div>
@@ -148,7 +148,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
 <aside class="sidebar" id="app-sidebar">
     <div class="sidebar-brand">
         <img src="/img/logo-mark.svg" alt="" class="sidebar-brand-icon">
-        <span><?= $e(\Keel\Brand::name()) ?></span>
+        <span><?= $e(\Framework\Brand::name()) ?></span>
     </div>
     <nav>
         <?php foreach ($nav as $entry): ?>
@@ -185,9 +185,9 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
             <?php endif; ?>
         <?php endforeach; ?>
     </nav>
-    <?php if (\Keel\Auth::check()): ?>
+    <?php if (\Framework\Auth::check()): ?>
         <div class="sidebar-user">
-            <a href="#" onclick="ModalLoader.open('user-settings', '<?= $e(\Keel\Auth::user()?->uid) ?>'); return false;"><i data-lucide="settings"></i>&nbsp;&nbsp;<?= $e(\Keel\Auth::user()?->fullName()) ?></a><br>
+            <a href="#" onclick="ModalLoader.open('user-settings', '<?= $e(\Framework\Auth::user()?->uid) ?>'); return false;"><i data-lucide="settings"></i>&nbsp;&nbsp;<?= $e(\Framework\Auth::user()?->fullName()) ?></a><br>
             <a href="/logout"><i data-lucide="log-out"></i>&nbsp;&nbsp;Sign out</a>
         </div>
     <?php endif; ?>
@@ -201,7 +201,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
                 aria-expanded="false" aria-controls="app-sidebar" onclick="toggleSidebar()">
             <i data-lucide="menu"></i>
         </button>
-        <span class="mobile-topbar-brand"><?= $e(\Keel\Brand::name()) ?></span>
+        <span class="mobile-topbar-brand"><?= $e(\Framework\Brand::name()) ?></span>
     </div>
     <?php if (isset($sidebarOrg)): ?>
         <div class="org-header-bar">
@@ -216,7 +216,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
                 <?php endforeach; ?>
             </div>
             <div class="org-header-controls">
-                <?php if (!\Keel\Auth::effectiveIsAdmin() && count($sidebarOrgs) > 1): ?>
+                <?php if (!\Framework\Auth::effectiveIsAdmin() && count($sidebarOrgs) > 1): ?>
                     <select onchange="window.location='/organizations/'+this.value+'/dashboard'">
                         <?php foreach ($sidebarOrgs as $so): ?>
                         <option value="<?= $e($so['uid']) ?>" <?= $so['uid'] === $sidebarOrg['uid'] ? 'selected' : '' ?>>
@@ -234,7 +234,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
         </div>
     <?php endif; ?>
     <div class="page-content" id="main-content" tabindex="-1">
-        <?php if (isset($sidebarOrg) && \Keel\Auth::check()): ?>
+        <?php if (isset($sidebarOrg) && \Framework\Auth::check()): ?>
             <?php require __DIR__ . '/../partials/account-alerts.php'; ?>
         <?php endif; ?>
         <?= $content ?>
@@ -242,8 +242,8 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
 </div>
 
 <script>
-const CURRENT_USER_UID = '<?= $e(\Keel\Auth::user()?->uid) ?>';
-const CURRENT_USER_EMAIL = '<?= $e(\Keel\Auth::user()?->email) ?>';
+const CURRENT_USER_UID = '<?= $e(\Framework\Auth::user()?->uid) ?>';
+const CURRENT_USER_EMAIL = '<?= $e(\Framework\Auth::user()?->email) ?>';
 </script>
 <div id="modal-root"></div>
 <?php

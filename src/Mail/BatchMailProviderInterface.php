@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Mail;
+namespace Framework\Mail;
 
 // Deliberately separate from MailProviderInterface rather than widening it. That interface has six
 // other callers -- password resets, invitations, order confirmations, 2FA -- and none of them want a

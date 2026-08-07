@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts;
+namespace Framework\Accounts;
 
-use Keel\Accounts\Model\MembershipModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Auth;
+use Framework\Accounts\Model\MembershipModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Auth;
 
 /**
  * "May the person at the keyboard do this to this organization?"

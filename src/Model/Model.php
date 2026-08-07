@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Keel\Model;
+namespace Framework\Model;
 
 use PDO;
 

@@ -1,6 +1,6 @@
 <?php
 // Errors::notFound() renders this with no data, so the app link is read straight from config.
-$appUrl = \Keel\Host::appUrl();
+$appUrl = \Framework\Host::appUrl();
 ?>
 <section class="marketing-404">
     <div class="wrap m404-wrap">

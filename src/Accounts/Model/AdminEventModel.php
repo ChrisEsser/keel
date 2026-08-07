@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Model;
+namespace Framework\Accounts\Model;
 
-use Keel\Model\Model;
+use Framework\Model\Model;
 
-// Rows of the platform activity log. Written only through Keel\Accounts\Service\AdminLog (never construct
+// Rows of the platform activity log. Written only through Framework\Accounts\Service\AdminLog (never construct
 // one directly — the service is what fills in the actor, the labels and the impersonation flag),
 // and read only by the admin activity area.
 //

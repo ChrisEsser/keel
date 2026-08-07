@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
-use Keel\Accounts\Model\RateLimitModel;
+use Framework\Accounts\Model\RateLimitModel;
 
 // One place that decides whether a submission to a PUBLIC platform form (login, signup,
 // forgot-password, verification resend) is allowed through. Every limit the platform enforces on
@@ -15,7 +15,7 @@ use Keel\Accounts\Model\RateLimitModel;
 //
 //   1. Honeypot   — a field real users never see. Filled in = bot.
 //   2. Timing     — humans don't submit a login form 300ms after it renders.
-//   3. Rate limit — sliding per-IP and per-email windows (Keel\Accounts\Model\RateLimitModel).
+//   3. Rate limit — sliding per-IP and per-email windows (Framework\Accounts\Model\RateLimitModel).
 //   4. Turnstile  — Cloudflare's challenge, verified server-side. Skipped entirely when the
 //                   platform has no Turnstile keys, so local dev and unconfigured deploys work.
 //

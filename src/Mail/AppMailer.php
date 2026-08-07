@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Keel\Mail;
+namespace Framework\Mail;
 
-use Keel\Accounts\Service\EmailBlocks;
-use Keel\Brand;
-use Keel\View\View;
+use Framework\Accounts\Service\EmailBlocks;
+use Framework\Brand;
+use Framework\View\View;
 
 // Sends an EmailBlocks as the application: wraps its blocks in views/emails/layout.php, pairs the
 // HTML with the plaintext the builder accumulated alongside it, and puts the app's own From on it.
 //
-// Keel\Mail\Mailer::send() already does the sending; what it doesn't do is decide who the mail is
+// Framework\Mail\Mailer::send() already does the sending; what it doesn't do is decide who the mail is
 // from, which every system-mail call site would otherwise have to repeat. This class is that
 // decision in one place.
 //

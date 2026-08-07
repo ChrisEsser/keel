@@ -21,12 +21,12 @@
  *
  * @var string $preheader     Inbox-preview line. Hidden in the body.
  * @var string $title         <title> text; not rendered visually.
- * @var string $content       Pre-built block HTML from Keel\Accounts\Service\EmailBlocks.
+ * @var string $content       Pre-built block HTML from Framework\Accounts\Service\EmailBlocks.
  * @var string $footerReason  Why this person is receiving this email.
  */
 
-use Keel\Brand;
-use Keel\Host;
+use Framework\Brand;
+use Framework\Host;
 
 $appUrl  = rtrim((string) ($_ENV['APP_URL'] ?? ''), '/');
 $logoUrl = Host::appUrl('/img/logo-mark.png');

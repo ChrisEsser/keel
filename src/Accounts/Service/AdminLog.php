@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Keel\Accounts\Service;
+namespace Framework\Accounts\Service;
 
-use Keel\Accounts\Model\AdminEventModel;
-use Keel\Accounts\Model\OrganizationModel;
-use Keel\Accounts\Model\UserModel;
-use Keel\Auth;
+use Framework\Accounts\Model\AdminEventModel;
+use Framework\Accounts\Model\OrganizationModel;
+use Framework\Accounts\Model\UserModel;
+use Framework\Auth;
 
 // The platform's activity log: what happened, to whom, and who did it.
 //

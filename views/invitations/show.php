@@ -27,7 +27,7 @@
     <p>You've been invited to join <strong><?= htmlspecialchars($org['display_name'] ?? $org['name']) ?></strong> as <strong><?= htmlspecialchars($invitation['role_label']) ?></strong>.</p>
 
     <form method="POST" action="/invitations/<?= htmlspecialchars($invitation['token']) ?>/accept" style="margin-top:1.5rem;">
-        <?= \Keel\Csrf::field() ?>
+        <?= \Framework\Csrf::field() ?>
         <button type="submit" class="btn-primary"><i data-lucide="check"></i> Accept Invitation</button>
     </form>
 
@@ -78,7 +78,7 @@
             <input id="password_confirm" name="password_confirm" type="password">
         </div>
         <div class="form-actions">
-            <?= \Keel\Csrf::field() ?>
+            <?= \Framework\Csrf::field() ?>
             <?= $this->insert('partials/form-guard') ?>
             <button type="submit" class="btn-primary"><i data-lucide="user-plus"></i> Create account</button>
         </div>
