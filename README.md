@@ -1,15 +1,22 @@
 # Keel
 
-A zero-dependency PHP 8.4 application framework that starts where most projects spend their first
-month: users, organizations, roles, invitations, two-factor auth, impersonation, an audit log, and
-Stripe subscriptions — all working, all yours to edit.
+A PHP 8.4 application baseline that starts where most projects spend their first month: users,
+organizations, roles, invitations, two-factor auth, impersonation, an audit log, and Stripe
+subscriptions — all working, all yours to edit.
 
-No Laravel, no Symfony, no runtime Composer packages. About 3,500 lines of framework and 7,000
+No Laravel, no Symfony, one runtime dependency (Stripe). About 3,500 lines of framework and 7,000
 lines of application code you can read in an afternoon.
 
+**Keel is not a package you install. It is a project you clone and then own.** There is no
+`composer require`, no `vendor/keel`, and nothing to upgrade — you start from a working
+application and edit it, the framework half included.
+
 ```bash
-composer require chrisesser/keel
-vendor/bin/keel init
+git clone git@github.com:ChrisEsser/keel.git myapp && cd myapp
+rm -rf .git && git init && git add -A && git commit -m "Start from Keel"
+composer install
+cp config/.env.example config/.env
+php scripts/generate-app-key.php    # paste the line it prints into config/.env
 php scripts/init-db.php
 php -S localhost:8000 -t public
 ```
@@ -19,43 +26,26 @@ php -S localhost:8000 -t public
 ## Starting a new project
 
 ```bash
-mkdir -p /var/www/myapp && cd /var/www/myapp
+git clone git@github.com:ChrisEsser/keel.git /var/www/myapp && cd /var/www/myapp
 ```
 
-Write `composer.json`:
-
-```json
-{
-    "name": "you/myapp",
-    "type": "project",
-    "require": { "chrisesser/keel": "^0.1" },
-    "autoload": { "psr-4": { "App\\": "src/" } }
-}
-```
-
-Until Keel is on Packagist, point at wherever the checkout lives instead — add a `repositories`
-entry and require `@dev`:
-
-```json
-"repositories": [
-    { "type": "path", "url": "/var/www/keel", "options": { "symlink": false } }
-],
-"require": { "chrisesser/keel": "@dev" }
-```
-
-`symlink: false` matters. Composer symlinks a path repository by default, which means editing
-Keel silently edits every project using it — right while you are working on the framework, wrong
-while you are working on an application built with it.
-
-Then:
+Then cut the cord. The history you just cloned is Keel's, not your project's, and keeping it
+implies a relationship — merges, upgrades — that this baseline deliberately does not have:
 
 ```bash
-composer install
-vendor/bin/keel init          # scaffolds public/, views/, config/, scripts/, schema.sql
+rm -rf .git
+git init && git add -A && git commit -m "Start from Keel"
 ```
 
-Fill in `DB_NAME`, `DB_USER`, `DB_PASS` and `APP_URL` in `config/.env` — the encryption key is
-already generated. Then:
+Put your own name in `composer.json`, and replace `LICENSE` if MIT isn't what you want. Then:
+
+```bash
+composer install                    # Stripe, PHPStan, and the autoloader
+cp config/.env.example config/.env
+php scripts/generate-app-key.php    # paste the line it prints into config/.env
+```
+
+Fill in `DB_NAME`, `DB_USER`, `DB_PASS` and `APP_URL` in `config/.env`, then:
 
 ```bash
 php scripts/init-db.php       # creates the database, applies schema.sql, seeds the first admin
@@ -68,16 +58,21 @@ organizations, invitations, roles and an audit log, and an empty dashboard to bu
 
 ### Where your code goes
 
+`src/` holds both halves. `Framework\` is what you cloned, `App\` is what you write, and both map
+to `src/` — so `src/Model/Model.php` is `Framework\Model\Model` and `src/Model/OrderModel.php` is
+`App\Model\OrderModel`, sitting side by side.
+
 | You want to | Edit |
 |---|---|
-| Add a route | `config/container.php`, in the marked block under `Routes::app($router)` |
+| Add a route | `config/container.php`, in the marked block at the end of the app router |
 | Add a screen | `src/Controller/`, `views/`, plus that route |
 | Change the sidebar | Pass `$nav` from your controllers — see the docblock in `views/layouts/main.php` |
 | Change the schema | Add a file to `scripts/migrations/`, run `php scripts/migrate.php` |
 | Change what a role may do | `Framework\Accounts\Model\Role` and `Framework\Accounts\OrgGuard` |
 | Add to the support hub | `OrgAdminController::show()` and `views/organizations/show.php` |
 
-Keel's own routes live in `Framework\Routes`, so a framework upgrade never touches your file.
+Nothing is off limits. If a framework decision is wrong for your project, change it — that is the
+point of the code being in your repo rather than in `vendor/`.
 
 ---
 
@@ -122,7 +117,7 @@ marketing site on another, each with its own router so neither can reach the oth
 ## The shape
 
 ```
-src/                          The framework — namespace Framework\
+src/                          Framework\ (cloned) and App\ (yours), one tree
   Container/                  Reflection-based DI
   Router/                     Route table, {param} matching
   Http/                       Request, Response, Emitter, Errors
@@ -134,14 +129,20 @@ src/                          The framework — namespace Framework\
   Billing/                    Stripe subscriptions
   Marketing/                  The public surface
 
-resources/                    Copied into YOUR project by `keel init` — then it's yours
-  views/  public/  config/  scripts/  schema.sql
+config/container.php          Every singleton and every route, written out longhand
+views/  public/               Templates and assets
+scripts/                      init-db, migrate, check-env, generate-app-key
+schema.sql                    The baseline schema; changes after it go in scripts/migrations/
 ```
 
-`keel init` copies `resources/` out of the package and into your project. Those files are yours
-afterwards: a framework upgrade can never revert a view you edited or a route you added. That is
-the trade — views are the part every application rewrites, so they are the part that gets copied
-rather than rendered out of `vendor/`.
+There is no `vendor/keel` and no `resources/` to copy out, because there is no package boundary to
+copy across. That boundary bought upgradability, and upgradability is the thing this baseline
+gives up on purpose: you are going to edit the views, the routes and eventually the framework
+itself, and a design that keeps those edits safe from an upgrade is solving a problem you no
+longer have. Clone it, own it, change anything.
+
+The one cost worth naming: a fix made here does not reach projects already cloned from it. Copy it
+across by hand, or don't — by then it is a different codebase.
 
 ## Design notes
 

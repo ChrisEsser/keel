@@ -14,10 +14,11 @@ class View
     private array $shared = [];
 
     /**
-     * Both paths are required. This class ships in a Composer package, so __DIR__ points into
-     * vendor/ and tells us nothing about the host application's layout -- an earlier version
-     * defaulted to a sibling `views/` and a `public/` beside it, which is true of exactly one
-     * project shape and silently wrong in every other.
+     * Both paths are required, and stay required now that this class no longer ships inside a
+     * Composer package. __DIR__ would resolve correctly today -- src/ and views/ are siblings
+     * again -- but defaulting to that bakes one project shape into the class, and moving a view
+     * directory would then break it from a distance rather than at the line that wired it. The
+     * one place that knows this project's layout is config/container.php, so it says so.
      */
     public function __construct(string $viewPath, string $publicPath)
     {
