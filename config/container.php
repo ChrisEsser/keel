@@ -46,7 +46,8 @@ $container = new Container();
 // ── View ──────────────────────────────────────────────────────────────────────────────────────
 
 $container->singleton(View::class, function () use ($root, $container) {
-    // Both paths explicitly: View ships inside vendor/ and cannot guess this project's layout.
+    // Both paths explicitly. This file is the one place that knows the project's layout, so it is
+    // the one place that should be edited if views/ or public/ ever move.
     $view = new View($root . '/views', $root . '/public');
 
     // Shared with every template, because the login screen alone renders it from several places
