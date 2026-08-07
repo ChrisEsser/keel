@@ -1,16 +1,21 @@
 <?php
-// Loads every Keel class and reports anything it references that cannot be resolved.
+// Loads every class in src/ and reports anything it references that cannot be resolved.
 // Run: php tests/resolve.php
 declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
+// The namespace comes out of the file rather than off the path, because src/ holds two of them:
+// Framework\ for what you cloned and App\ for what you wrote, interleaved in the same directories.
+// Deriving it from the path would mean guessing a prefix, and guessing wrong reads as "class not
+// found at its PSR-4 path" -- the exact message you would then go looking for a real bug behind.
 $root = dirname(__DIR__) . '/src';
 $classes = [];
 $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
 foreach ($rii as $file) {
     if ($file->getExtension() !== 'php') continue;
-    $rel = substr($file->getPathname(), strlen($root) + 1, -4);
-    $classes[] = 'Framework\\' . str_replace('/', '\\', $rel);
+    $source = (string) file_get_contents($file->getPathname());
+    if (!preg_match('/^namespace\s+([^;]+);/m', $source, $m)) continue;
+    $classes[] = trim($m[1]) . '\\' . $file->getBasename('.php');
 }
 sort($classes);
 
