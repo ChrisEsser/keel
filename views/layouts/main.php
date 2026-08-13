@@ -116,6 +116,11 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
     <script src="<?= $this->asset('/js/feedback.js') ?>"></script>
     <script src="<?= $this->asset('/js/app.js') ?>"></script>
     <script src="<?= $this->asset('/js/code-input.js') ?>"></script>
+    <?php // A self-contained colour picker: one global (ColorPickerWidget), its own injected
+          // stylesheet, no dependency on any other script or icon font. Loaded globally rather than
+          // per-page because the modals that would use it arrive through ModalLoader, which injects
+          // HTML into a page that has already finished loading its scripts. ?>
+    <script src="<?= $this->asset('/js/color-picker-widget.js') ?>"></script>
     <?php // Only loaded where billing is actually configured -- an app with no Stripe keys has no
           // reason to hand every page a third-party script tag. ?>
     <?php if (!empty($_ENV['STRIPE_PUBLIC_KEY'])): ?>
