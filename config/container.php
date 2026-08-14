@@ -19,6 +19,7 @@ declare(strict_types=1);
  * commented where it appears; keep those comments alive as the list grows.
  */
 
+use Framework\Accounts\Controller\AccountController;
 use Framework\Accounts\Controller\ActivityController;
 use Framework\Accounts\Controller\AuthController;
 use Framework\Accounts\Controller\DashboardController;
@@ -185,6 +186,21 @@ $container->singleton(Router::class, function ($c) {
     $router->put('/api/users/{uid}', UserController::class . '@update');
     $router->post('/api/users/{uid}/2fa/disable', UserController::class . '@disableTwoFactor');
     $router->delete('/api/users/{uid}', UserController::class . '@destroy');
+
+    // ── Your own account's security ───────────────────────────────────────────────────────────
+    // Self-scoped, and separate from /api/users/{uid} for that reason: these act on
+    // Auth::actualUser() and take no uid, so there is nothing to address but yourself.
+    $router->get('/api/account/security', AccountController::class . '@status');
+    $router->post('/api/account/2fa/totp/setup', AccountController::class . '@totpSetup');
+    $router->post('/api/account/2fa/totp/confirm', AccountController::class . '@totpConfirm');
+    $router->post('/api/account/2fa/sms/send', AccountController::class . '@smsSend');
+    $router->post('/api/account/2fa/sms/confirm', AccountController::class . '@smsConfirm');
+    $router->post('/api/account/2fa/disable', AccountController::class . '@disableTwoFactor');
+    $router->post('/api/account/2fa/backup-codes/regenerate', AccountController::class . '@regenerateBackupCodes');
+    $router->post('/api/account/pin/setup', AccountController::class . '@setupPin');
+    $router->post('/api/account/pin/disable', AccountController::class . '@disablePin');
+    $router->post('/api/account/devices/revoke-all', AccountController::class . '@revokeAllDevices');
+    $router->post('/api/account/devices/{id}/revoke', AccountController::class . '@revokeDevice');
 
     // ── Organizations ─────────────────────────────────────────────────────────────────────────
     $router->get('/api/organizations', OrganizationController::class . '@get');
