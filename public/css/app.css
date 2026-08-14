@@ -808,18 +808,31 @@ a.page-header-subtitle:hover { color: var(--accent); }
     z-index: 1100;
 }
 
+/* A band across the top for the close button to live in, so nothing can scroll beneath it.
+   It used to float over .modal-content, which scrolls, and the button being opaque white was
+   the whole defense: text slid up and vanished behind a white square. .modal-content carried
+   3rem of top padding to keep the first heading clear of it, which worked until the content
+   was longer than the panel.
+
+   Padding on the modal itself only where the modal is ONE column. .modal--confirm has no close
+   button at all, and .modal--sidebar has a column beside the content that should reach the top
+   of the modal rather than start below a strip belonging to the other column; that one gets its
+   band inside .modal-content instead, below. */
+.modal--plain { padding-top: 2.75rem; }
+
 .modal-close {
     position: absolute;
-    top: 0.75rem;
-    right: 1.5rem;
+    top: 0.5rem;
+    right: 0.75rem;
     z-index: 10;
     background: #ffffff;
     color: var(--ink-subtle);
     padding: 0.4rem;
     border-radius: 6px;
 }
-/* Opaque on purpose: the button sits over modal content that scrolls under it, so a
-   translucent hover would let the text show through. #ededec is rgba(28,25,23,.08) on white. */
+/* Still opaque, though the band means it no longer has to be: a translucent hover over the
+   band's own white would read as a grey smudge rather than a button. #ededec is
+   rgba(28,25,23,.08) on white. */
 .modal-close:hover { background: #ededec; color: var(--ink); }
 
 .modal-close [data-lucide] {
@@ -912,7 +925,27 @@ a.page-header-subtitle:hover { color: var(--accent); }
     min-width: 0;
 }
 
-.modal--sidebar .modal-content { padding-top: 3rem; }
+/* The close button's band, for sidebar modals, living INSIDE the column it belongs to so the
+   sidebar next to it still starts at the top of the modal.
+
+   It has to be sticky rather than padding: .modal-content is the scroller, so its own padding
+   scrolls away with the content and the first heading ends up under the button again. A sticky
+   first child stays pinned at the top of the scrollport and paints over whatever passes beneath
+   it, which is the job the button's opaque background used to be doing on its own.
+
+   The negative side margins bleed it over the column's 1.5rem of horizontal padding, so the
+   strip spans the full width rather than leaving two gutters where text shows through. */
+.modal--sidebar .modal-content { padding-top: 0; }
+.modal--sidebar .modal-content::before {
+    content: '';
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 2.75rem;
+    margin: 0 -1.5rem 0.6rem;
+    background: #fff;
+}
 
 .modal-panel { display: none; }
 .modal-panel.active { display: block; }
@@ -1827,30 +1860,64 @@ hr.divider { border: none; border-top: 1px solid #ccd1d8; height: 0; margin: 2re
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Sidebar-modals stack: the nav becomes a horizontal scroller above content. */
+    /* Here the band spans the whole modal, because here the sidebar is a row UNDER the close
+       button rather than a column beside it. The strip inside .modal-content would leave the
+       button sitting on top of that row. */
+    .modal--sidebar { padding-top: 2.75rem; }
+    .modal--sidebar .modal-content { padding-top: 1.5rem; }
+    .modal--sidebar .modal-content::before { display: none; }
+
+    /* Sidebar-modals stack, and the nav reflows into a two-column grid of the SAME rows it
+       draws in the column above 860px. Nothing about their appearance changes: icon, label,
+       left-aligned, faint wash on the active one. Only the layout does.
+
+       It replaced a sideways scroller that put the later tabs off the right edge with nothing
+       on screen to say they were there, which on a phone is the difference between a setting
+       being hard to find and being invisible. Every tab is on screen now.
+
+       Two columns rather than a wrapping row, because these are rows: a wrapping row aligns to
+       text and leaves ragged gaps, while a grid keeps the icons in two columns and the whole
+       block reads as a list that happens to be folded in half. */
     .modal-body { flex-direction: column; }
     .help-list--grid { grid-template-columns: 1fr; }
     .modal-sidebar {
         width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 0.5rem 0;
+        overflow: visible;
         border-right: none;
         border-bottom: 1px solid var(--border);
-        border-radius: 8px 8px 0 0;
+        border-radius: 0;
     }
     .modal-sidebar-header { display: none; }
-    .modal-sidebar a { white-space: nowrap; }
-    .modal--sidebar .modal-content { padding-top: 1.5rem; }
+    .modal-sidebar a {
+        /* Tighter than the column's 1.25rem, which was set for a 192px gutter. */
+        padding: 0.5rem 1rem;
+        /* A grid item defaults to min-width:auto and refuses to shrink below its content,
+           which is what would push the second column off the right edge. */
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    .modal-sidebar a [data-lucide] { flex-shrink: 0; }
 }
 
 /* Comfortable 44px touch targets for primary nav/actions on touch devices. */
 @media (pointer: coarse) {
     .btn:not(.btn-sm),
     .sidebar nav a,
-    .modal-sidebar a,
     .mobile-nav-toggle {
         min-height: 44px;
     }
+}
+
+/* The modal sidebar only wants that floor while it is a COLUMN of full-width rows, which is
+   above 860px. Below it the same links are a two-column grid, where a 44px floor makes each
+   cell a slab and pushes the panel they select off the screen. Their own padding is the tap
+   target there. */
+@media (pointer: coarse) and (min-width: 861px) {
+    .modal-sidebar a { min-height: 44px; }
 }
 
 
