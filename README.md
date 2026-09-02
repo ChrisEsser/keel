@@ -1,8 +1,8 @@
 # Keel
 
-A PHP 8.4 application baseline that starts where most projects spend their first month: users,
+A PHP 8.4 application baseline that starts where most projects start: users,
 organizations, roles, invitations, two-factor auth, impersonation, an audit log, and Stripe
-subscriptions — all working, all yours to edit.
+subscriptions.
 
 No Laravel, no Symfony, one runtime dependency (Stripe). About 3,500 lines of framework and 7,000
 lines of application code you can read in an afternoon.
@@ -37,7 +37,7 @@ rm -rf .git
 git init && git add -A && git commit -m "Start from Keel"
 ```
 
-Put your own name in `composer.json`, and replace `LICENSE` if MIT isn't what you want. Then:
+Then:
 
 ```bash
 composer install                    # Stripe and the autoloader — that's the whole dependency list
@@ -78,14 +78,8 @@ point of the code being in your repo rather than in `vendor/`.
 
 ## Why this exists
 
-Most frameworks give you a router and a template engine and leave the hard, boring, identical 20%
-to you — the part where you decide how a password reset token is stored, what happens to a
-customer's access on the fourth failed card retry, and whether an admin impersonating a customer
-should still count as an admin.
-
-Keel is those decisions, already made, with the reasoning written down next to them. Where a
-choice was not obvious, the comment says what the alternative was and why it lost. You will
-disagree with some of them; the code is small enough to change.
+Most frameworks give you a router and a template engine. Most of my projects need users, organization, 
+auth, 2fa. So this framework exists to jump start my projects with the 20% that every project starts with
 
 ## What's in the box
 
@@ -136,13 +130,7 @@ schema.sql                    The baseline schema; changes after it go in script
 ```
 
 There is no `vendor/keel` and no `resources/` to copy out, because there is no package boundary to
-copy across. That boundary bought upgradability, and upgradability is the thing this baseline
-gives up on purpose: you are going to edit the views, the routes and eventually the framework
-itself, and a design that keeps those edits safe from an upgrade is solving a problem you no
-longer have. Clone it, own it, change anything.
-
-The one cost worth naming: a fix made here does not reach projects already cloned from it. Copy it
-across by hand, or don't — by then it is a different codebase.
+copy across. Clone it, own it, fix it, change anything to suit the project.
 
 ## Design notes
 
