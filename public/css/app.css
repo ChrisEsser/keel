@@ -1177,6 +1177,35 @@ a.page-header-subtitle:hover { color: var(--accent); }
 
 /* Chip/tag input — the product modal's Categories field (and reusable elsewhere). Styled to read
    as one text field that happens to hold chips; the bare <input> flex-grows to fill the rest. */
+/* Below 640px the row's 50/50 label/field split gets too tight to read, so every .modal-form-row
+   stacks -- and always in label / field / note order, whichever of the three DOM shapes produced
+   the note: a .modal-form-label-col pairing it with the label (desktop shows note UNDER the label,
+   above the field), a bare .form-text after the field, or one nested inside .modal-form-field.
+   `display: contents` on the label column un-wraps it so its label and note become flex items of
+   the row directly, alongside the field -- then `order` sequences all three the same way regardless
+   of where in the DOM the note actually lives. A note left nested inside .modal-form-field (the
+   third shape) needs no order of its own: it already renders after the field's own input. */
+@media (max-width: 640px) {
+    .modal-form-row,
+    .modal-form-row:has(textarea) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+    }
+    .modal-form-label-col { display: contents; }
+    .modal-form-row > .modal-form-label,
+    .modal-form-row > .modal-form-label-col > .modal-form-label {
+        order: 1;
+        min-width: 0;
+        flex: none;
+    }
+    .modal-form-row > .modal-form-field { order: 2; }
+    .modal-form-row > .form-text,
+    .modal-form-row > .modal-form-label-col > .form-text {
+        order: 3;
+    }
+}
+
 .tag-input {
     display: flex;
     flex-wrap: wrap;
@@ -1867,57 +1896,58 @@ hr.divider { border: none; border-top: 1px solid #ccd1d8; height: 0; margin: 2re
     .modal--sidebar .modal-content { padding-top: 1.5rem; }
     .modal--sidebar .modal-content::before { display: none; }
 
-    /* Sidebar-modals stack, and the nav reflows into a two-column grid of the SAME rows it
-       draws in the column above 860px. Nothing about their appearance changes: icon, label,
+    /* Sidebar-modals stack, and the nav becomes a horizontally scrolling strip of the SAME rows
+       it draws in the column above 860px. Nothing about their appearance changes: icon, label,
        left-aligned, faint wash on the active one. Only the layout does.
 
-       It replaced a sideways scroller that put the later tabs off the right edge with nothing
-       on screen to say they were there, which on a phone is the difference between a setting
-       being hard to find and being invisible. Every tab is on screen now.
-
-       Two columns rather than a wrapping row, because these are rows: a wrapping row aligns to
-       text and leaves ragged gaps, while a grid keeps the icons in two columns and the whole
-       block reads as a list that happens to be folded in half. */
+       An earlier version of this used a plain sideways scroller and dropped it for a two-column
+       grid instead, because the later tabs sat off the right edge with nothing on screen to say
+       they were there -- on a phone, invisible and hard-to-find are the same bug. Coming back to
+       a scroller now means that has to stay solved: the mask-image fade below keeps a permanent
+       "there's more" cue on the trailing edge, and scroll-snap stops a tab from being left
+       half-visible once you do scroll. */
     .modal-body { flex-direction: column; }
     .help-list--grid { grid-template-columns: 1fr; }
     .modal-sidebar {
         width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        padding: 0.5rem 0;
-        overflow: visible;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        padding: 0.5rem 0.75rem;
         border-right: none;
         border-bottom: 1px solid var(--border);
         border-radius: 0;
+        /* The fade -- not "scrolled to the end" awareness -- is what says "more tabs this way";
+           knowing there's nothing left to scroll to would need JS to track scroll position, which
+           a settings-modal tab strip doesn't warrant. */
+        mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
     }
     .modal-sidebar-header { display: none; }
     .modal-sidebar a {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
         /* Tighter than the column's 1.25rem, which was set for a 192px gutter. */
         padding: 0.5rem 1rem;
-        /* A grid item defaults to min-width:auto and refuses to shrink below its content,
-           which is what would push the second column off the right edge. */
-        min-width: 0;
-        overflow: hidden;
         white-space: nowrap;
     }
     .modal-sidebar a [data-lucide] { flex-shrink: 0; }
 }
 
-/* Comfortable 44px touch targets for primary nav/actions on touch devices. */
+/* Comfortable 44px touch targets for primary nav/actions on touch devices. .modal-sidebar a is a
+   row of links both above 860px (a column) and below it (a horizontal scroll strip) -- a min-height
+   floor only ever adds height, so it's safe in both, unlike the two-column grid this replaced where
+   the same floor turned each cell into a slab and pushed the panel it selected off the screen. */
 @media (pointer: coarse) {
     .btn:not(.btn-sm),
     .sidebar nav a,
-    .mobile-nav-toggle {
+    .mobile-nav-toggle,
+    .modal-sidebar a {
         min-height: 44px;
     }
-}
-
-/* The modal sidebar only wants that floor while it is a COLUMN of full-width rows, which is
-   above 860px. Below it the same links are a two-column grid, where a 44px floor makes each
-   cell a slab and pushes the panel they select off the screen. Their own padding is the tap
-   target there. */
-@media (pointer: coarse) and (min-width: 861px) {
-    .modal-sidebar a { min-height: 44px; }
 }
 
 

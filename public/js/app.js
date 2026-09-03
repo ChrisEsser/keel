@@ -241,10 +241,14 @@ class AjaxModal {
         this.#overlay.querySelectorAll('input[type=password]').forEach(i => i.value = '');
         clearStuckLoading(this.#overlay);
 
+        // display must flip BEFORE tab(): tab() measures the sidebar to scroll the active tab
+        // into view (see #scrollTabIntoView), and every dimension on a display:none tree reads
+        // as 0 -- the scroll would silently compute against a collapsed box and go nowhere.
+        this.#overlay.style.display = 'flex';
+
         const targetPanel = panel ?? this.#overlay.querySelector('.modal-sidebar a[data-panel]')?.dataset.panel;
         if (targetPanel) this.tab(targetPanel);
 
-        this.#overlay.style.display = 'flex';
         this.#activateA11y();
 
         AjaxModal.#stack = AjaxModal.#stack.filter(m => m !== this);
@@ -321,12 +325,28 @@ class AjaxModal {
     }
 
     tab(name) {
-        this.#overlay.querySelectorAll('.modal-sidebar a[data-panel]').forEach(a =>
-            a.classList.toggle('active', a.dataset.panel === name)
-        );
+        this.#overlay.querySelectorAll('.modal-sidebar a[data-panel]').forEach(a => {
+            const active = a.dataset.panel === name;
+            a.classList.toggle('active', active);
+            // Below 860px .modal-sidebar is a horizontal scroll strip (see app.css), so opening
+            // straight to a tab beyond the first one can land off-screen -- e.g. a deep link that
+            // jumps a support case straight to Domains. Only the sidebar's own scrollLeft moves;
+            // unlike Element.scrollIntoView() this can never also scroll the page behind the modal.
+            if (active) this.#scrollTabIntoView(a);
+        });
         this.#overlay.querySelectorAll('.modal-panel[data-panel]').forEach(p =>
             p.classList.toggle('active', p.dataset.panel === name)
         );
+    }
+
+    #scrollTabIntoView(a) {
+        const sidebar = a.closest('.modal-sidebar');
+        if (!sidebar) return;
+        const center = a.offsetLeft + a.offsetWidth / 2 - sidebar.clientWidth / 2;
+        // Clamping rather than centering unconditionally is what gives the "as close to centered
+        // as it can get" behavior for a tab near either end -- e.g. the last tab can't have empty
+        // strip after it just to sit in the middle, so it settles at the max scroll instead.
+        sidebar.scrollLeft = Math.max(0, Math.min(center, sidebar.scrollWidth - sidebar.clientWidth));
     }
 
     // A 422 body may key its errors by field name ({slug: "..."}) instead of returning a bare
