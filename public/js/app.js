@@ -84,11 +84,6 @@ function hydrateUtcStamps(root = document) {
 
 document.addEventListener('DOMContentLoaded', () => hydrateUtcStamps());
 
-window.fmtDate = fmtDate;
-window.fmtDateLong = fmtDateLong;
-window.fmtDayLong = fmtDayLong;
-window.fmtDay = fmtDay;
-window.hydrateUtcStamps = hydrateUtcStamps;
 
 
 // ── UUID generation ──────────────────────────────────────────────────────────
@@ -403,11 +398,6 @@ function renderResponseErrors(root, data) {
     first?.focus();
     return leftover.join(' ');
 }
-
-window.setFieldError = setFieldError;
-window.clearFieldError = clearFieldError;
-window.clearFieldErrors = clearFieldErrors;
-window.renderResponseErrors = renderResponseErrors;
 
 
 // ── AjaxModal ──────────────────────────────────────────────────────────────
@@ -1388,5 +1378,3 @@ const FlashToast = (() => {
 
     return { stash };
 })();
-
-window.FlashToast = FlashToast;
