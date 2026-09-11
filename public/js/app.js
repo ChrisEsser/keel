@@ -741,6 +741,25 @@ class AjaxModal {
     }
 
     get uid() { return this.#uid; }
+
+    /**
+     * Turn a create modal into the edit modal for the record it just created.
+     *
+     * A sidebar modal whose later tabs need a uid -- images to attach, a child record to hang off
+     * -- has nowhere sensible to put them before the record exists. Both alternatives are worse: a
+     * second partial duplicating every field, or holding uploads in the browser until a save
+     * succeeds and then having to report rather than roll back when one of them fails.
+     *
+     * onCreated already owns everything that happens next; this is the tool that lets it choose to
+     * stay open instead of closing. Identity only -- it deliberately does not re-fetch or
+     * re-render, so the caller decides between open() for a full reload and simply unlocking what
+     * it had locked.
+     */
+    adopt(uid) {
+        this.#uid = uid;
+        this.options.mode = 'edit';
+        return this;
+    }
 }
 
 // ── ModalForm ──────────────────────────────────────────────────────────────
