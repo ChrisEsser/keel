@@ -161,6 +161,78 @@ function onBackdropDismiss(overlay, close) {
 window.onBackdropDismiss = onBackdropDismiss;
 
 
+// ── Field-level form errors ──────────────────────────────────────────────────
+// A message printed under the input it belongs to, next to the .has-error border. The modal
+// `.alert` is still where a whole-form failure goes; this is for a rejection the user fixes in one
+// field -- a name already taken, a malformed URL -- which reads better beside the field than in a
+// banner at the top of the modal, sometimes a scroll away from the control it is about.
+
+// Appended to the field's .modal-form-field wrapper rather than inserted after the input, so it
+// lands underneath even when the control sits in a flex row beside a prefix, or is one of two
+// controls that swap places.
+function setFieldError(el, text) {
+    if (!el) return;
+    clearFieldError(el);
+    el.classList.add('has-error');
+    const msg = document.createElement('div');
+    msg.className = 'field-error';
+    msg.textContent = text;
+    (el.closest('.modal-form-field') ?? el.parentNode)?.appendChild(msg);
+}
+
+function clearFieldError(el) {
+    const wrap = el?.closest?.('.modal-form-field') ?? el?.parentNode;
+    wrap?.querySelectorAll?.('.field-error').forEach(node => node.remove());
+}
+
+function clearFieldErrors(root) {
+    root?.querySelectorAll?.('.field-error').forEach(node => node.remove());
+}
+
+// The element a message for `name` should be printed under, or null when there isn't one.
+//
+// Null is a real answer, not a failure: a [data-field] may be a hidden input carrying a value for
+// a picker, or sit in a panel that isn't showing, and a message attached to either is a message
+// nobody can read. Those go to the alert instead -- the difference between saying it somewhere
+// and saying it nowhere. Where a hidden input stands in for a visible control, the visible one
+// claims the message with data-error-for="<field>".
+function resolveErrorField(root, name) {
+    const canShow = el => el && el.type !== 'hidden' && el.getClientRects().length > 0;
+    const standIn = root.querySelector(`[data-error-for="${name}"]`);
+    if (canShow(standIn)) return standIn;
+
+    const field = root.querySelector(`[data-field="${name}"]`);
+    return canShow(field) ? field : null;
+}
+
+// Renders a failed response as close to its cause as the shape allows: a 422 keyed by field name
+// ({slug: "..."}) prints each message under its own input, and only what has nowhere to land -- an
+// unmapped key, a list-shaped `errors`, a bare `message` -- is left over. Returns that leftover as
+// the alert text, which is '' when every message found a field.
+function renderResponseErrors(root, data) {
+    const errors = data.errors;
+    if (!errors || Array.isArray(errors) || typeof errors !== 'object') {
+        return errors ? Object.values(errors).join(' ') : (data.message || 'An error occurred.');
+    }
+
+    const leftover = [];
+    let first = null;
+    for (const [name, text] of Object.entries(errors)) {
+        const el = resolveErrorField(root, name);
+        if (!el) { leftover.push(text); continue; }
+        setFieldError(el, text);
+        if (!first) first = el;
+    }
+    first?.focus();
+    return leftover.join(' ');
+}
+
+window.setFieldError = setFieldError;
+window.clearFieldError = clearFieldError;
+window.clearFieldErrors = clearFieldErrors;
+window.renderResponseErrors = renderResponseErrors;
+
+
 // ── AjaxModal ──────────────────────────────────────────────────────────────
 
 class AjaxModal {
@@ -225,7 +297,7 @@ class AjaxModal {
         // making them re-submit just to see the red border go away. Not limited to
         // [data-field]: a validator may mark the visible control standing in for a hidden
         // one (redirect-settings' destination picker writes through to a hidden to_url).
-        const clear = e => e.target.classList?.remove('has-error');
+        const clear = e => { e.target.classList?.remove('has-error'); clearFieldError(e.target); };
         this.#overlay.addEventListener('input', clear);
         this.#overlay.addEventListener('change', clear);
     }
@@ -239,6 +311,8 @@ class AjaxModal {
             el.style.display = 'none';
         });
         this.#overlay.querySelectorAll('input[type=password]').forEach(i => i.value = '');
+        this.#overlay.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+        clearFieldErrors(this.#overlay);
         clearStuckLoading(this.#overlay);
 
         // display must flip BEFORE tab(): tab() measures the sidebar to scroll the active tab
@@ -349,23 +423,6 @@ class AjaxModal {
         sidebar.scrollLeft = Math.max(0, Math.min(center, sidebar.scrollWidth - sidebar.clientWidth));
     }
 
-    // A 422 body may key its errors by field name ({slug: "..."}) instead of returning a bare
-    // list. When it does, mark those inputs the same way an empty required field is marked, so a
-    // server-side rejection (a duplicate value, say -- something only the server can know) lands
-    // on the offending field instead of only in the alert. A list-shaped `errors` has no field
-    // names to map, so it just shows the alert as before.
-    #markFieldErrors(form, errors) {
-        if (!errors || Array.isArray(errors) || typeof errors !== 'object') return;
-        let first = null;
-        for (const key of Object.keys(errors)) {
-            const el = form.querySelector(`[data-field="${key}"]`);
-            if (!el) continue;
-            el.classList.add('has-error');
-            if (!first) first = el;
-        }
-        first?.focus();
-    }
-
     showMsg(panel, text, isError) {
         const el = this.#overlay.querySelector(`[data-msg="${panel}"]`);
         if (!el) return;
@@ -411,6 +468,7 @@ class AjaxModal {
         // Form-wide rather than fields-only, so a mark left by a custom validator on a
         // visible stand-in control clears too (see the input/change handlers in #wire).
         form.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+        clearFieldErrors(form);
 
         const payload = {};
         const missing = [];
@@ -435,6 +493,10 @@ class AjaxModal {
         }
 
         const error = this.options.validators[panel]?.(form, payload);
+        // A validator that has already put its message somewhere better -- under the offending
+        // field, via setFieldError -- returns false to stop the submit without also duplicating it
+        // into the alert.
+        if (error === false) return;
         if (error) { this.showMsg(panel, error, true); return; }
 
         if (this.options.mode === 'create') {
@@ -457,11 +519,7 @@ class AjaxModal {
                     // a list, etc).
                     this.options.onCreated?.call(this, data.data, form, this);
                 } else {
-                    const msg = data.errors
-                        ? Object.values(data.errors).join(' ')
-                        : (data.message || 'An error occurred.');
-                    this.#markFieldErrors(form, data.errors);
-                    this.showMsg(panel, msg, true);
+                    this.showMsg(panel, renderResponseErrors(form, data), true);
                 }
             });
             return;
@@ -494,11 +552,7 @@ class AjaxModal {
                 // Errors always stay in the form (inline alert + has-error on the offending
                 // fields), plain or not -- toasting-and-closing would throw away what the user
                 // typed and where the problem is.
-                const msg = data.errors
-                    ? Object.values(data.errors).join(' ')
-                    : (data.message || 'An error occurred.');
-                this.#markFieldErrors(form, data.errors);
-                this.showMsg(panel, msg, true);
+                this.showMsg(panel, renderResponseErrors(form, data), true);
             }
         });
     }
@@ -538,7 +592,7 @@ class ModalForm {
 
         // Clear a field's has-error state as soon as the user acts on it, rather than
         // making them re-submit just to see the red border go away.
-        const clear = e => e.target.classList?.remove('has-error');
+        const clear = e => { e.target.classList?.remove('has-error'); clearFieldError(e.target); };
         this.#root.addEventListener('input', clear);
         this.#root.addEventListener('change', clear);
     }
@@ -575,6 +629,7 @@ class ModalForm {
     reset() {
         this.showMsg('', false);
         this.#root.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+        clearFieldErrors(this.#root);
         clearStuckLoading(this.#root);
     }
 
@@ -599,25 +654,18 @@ class ModalForm {
         el.focus();
     }
 
-    // Render a failed JSON response. A 422 keyed by field name ({slug: "..."}) also marks that
-    // input, so a server-only rejection like a duplicate value lands on the field; a list-shaped
-    // `errors` has no field names to map and just shows the alert.
+    // The same as fail(), for a message that belongs under the field rather than in the alert --
+    // one the user can correct in place, where a banner at the top of the modal is further from
+    // the problem than the field itself is.
+    failField(el, text) {
+        setFieldError(el, text);
+        el.focus();
+    }
+
+    // Render a failed JSON response -- see renderResponseErrors: field-keyed messages go under
+    // their own inputs, and the alert is left with whatever had no field to land on.
     failResponse(data) {
-        const errors = data.errors;
-        const text = errors
-            ? Object.values(errors).join(' ')
-            : (data.message || 'An error occurred.');
-        if (errors && !Array.isArray(errors) && typeof errors === 'object') {
-            let first = null;
-            for (const key of Object.keys(errors)) {
-                const el = this.#root.querySelector(`[data-field="${key}"]`);
-                if (!el) continue;
-                el.classList.add('has-error');
-                if (!first) first = el;
-            }
-            first?.focus();
-        }
-        this.showMsg(text, true);
+        this.showMsg(renderResponseErrors(this.#root, data), true);
     }
 }
 

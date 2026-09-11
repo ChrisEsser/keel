@@ -266,6 +266,17 @@ textarea.has-error:focus {
     width: 100%;
 }
 
+/* A validation message under the field it belongs to, printed alongside the .has-error border by
+   setFieldError() in app.js. Same metrics as .form-text above, so a field whose help text is
+   replaced by an error reads as that line turning red rather than as the row growing. The modal
+   .alert stays for whole-form failures; this is for the ones fixed in the field itself. */
+.field-error {
+    font-size: 0.8rem;
+    color: var(--danger);
+    margin-top: 0.35rem;
+    width: 100%;
+}
+
 /* Quieter body prose: page intros, empty-state copy, secondary lines in a table cell.
    Colour only — it keeps the surrounding text size, which is what separates it from .form-text.
    Sits in base.css because guest and standalone pages (auth/signup-sent.php,
