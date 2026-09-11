@@ -149,6 +149,114 @@ function setButtonLabel(btn, html) {
 window.setButtonLabel = setButtonLabel;
 
 
+// ── Copy to clipboard ────────────────────────────────────────────────────────
+// navigator.clipboard exists only in a secure context (HTTPS or localhost), so on a plain-HTTP
+// host every copy button silently does nothing -- and says nothing, which is the worse half. The
+// textarea + execCommand fallback is deprecated but works everywhere, and this is the one case
+// where "deprecated but universal" beats "correct but absent".
+//
+// Returns true/false rather than toasting, because callers want different words: one says what it
+// copied, another says nothing and flashes the control instead.
+
+async function copyText(text) {
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+    } catch {
+        return false;
+    }
+}
+window.copyText = copyText;
+
+// One value plus its copy button, as markup. Kept here so every table spells the affordance the
+// same way, and so the data-copy attribute the handler below looks for is always written.
+function copyableCode(value) {
+    const v = esc(value);
+    return `<span class="copy-field"><code>${v}</code>`
+        + `<button type="button" class="copy-btn" data-copy="${v}" title="Copy" aria-label="Copy ${v}">`
+        + '<i data-lucide="copy"></i></button></span>';
+}
+window.copyableCode = copyableCode;
+
+/**
+ * Wires the copy buttons inside a container of values people have to retype somewhere else.
+ *
+ * An explicit button rather than click-the-text: a monospace string in a table gives a reader no
+ * reason to try clicking it, so the affordance has to be visible to exist.
+ *
+ * Delegated from the container rather than bound per button, because a table like this re-renders
+ * and re-binding each time is how you end up copying twice per click. Idempotent for the same
+ * reason -- calling it again after a re-render is the expected usage.
+ */
+function bindCopyableCode(container) {
+    if (!container || container.dataset.copyBound === '1') return;
+    container.dataset.copyBound = '1';
+
+    container.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button.copy-btn');
+        if (!btn || !container.contains(btn)) return;
+        e.preventDefault();
+
+        const value = btn.dataset.copy || '';
+        if (!value) return;
+
+        const ok = await copyText(value);
+        // Feedback on the button itself. Six values copied in a row would be six toasts, and the
+        // question actually being asked is "did THAT one take".
+        btn.classList.toggle('copied', ok);
+        btn.classList.toggle('copy-failed', !ok);
+        btn.innerHTML = `<i data-lucide="${ok ? 'check' : 'x'}"></i>`;
+        btn.setAttribute('aria-label', (ok ? 'Copied: ' : 'Could not copy: ') + value);
+        if (window.lucide) lucide.createIcons();
+
+        clearTimeout(btn._copyTimer);
+        btn._copyTimer = setTimeout(() => {
+            btn.classList.remove('copied', 'copy-failed');
+            btn.innerHTML = '<i data-lucide="copy"></i>';
+            btn.setAttribute('aria-label', 'Copy ' + value);
+            if (window.lucide) lucide.createIcons();
+        }, 1400);
+    });
+}
+window.bindCopyableCode = bindCopyableCode;
+
+// For a secret shown once and unrecoverable -- an API key, a recovery code. Worth a toast rather
+// than a flash on the button, because somebody who trusts a silent copy and closes the panel has
+// lost it for good, and the failure message has to tell them what to do instead.
+async function copyKeyValue(el) {
+    if (!el) return;
+    const ok = await copyText((el.textContent || '').trim());
+    toast(ok ? 'Copied.' : 'Could not copy. Select it and copy it by hand.', ok ? 'success' : 'error');
+}
+window.copyKeyValue = copyKeyValue;
+
+
+// ── Prose ────────────────────────────────────────────────────────────────────
+// "Home", "Home and About", "Home, About and 3 other places" -- capped, so a value used in fifty
+// places doesn't produce a confirm dialog nobody reads.
+
+function listPhrase(items, max = 5) {
+    const shown = items.slice(0, max);
+    const extra = items.length - shown.length;
+    if (extra > 0) shown.push(`${extra} other place${extra === 1 ? '' : 's'}`);
+    if (shown.length === 1) return shown[0];
+    return shown.slice(0, -1).join(', ') + ' and ' + shown[shown.length - 1];
+}
+window.listPhrase = listPhrase;
+
+
 // ── AJAX form submit ─────────────────────────────────────────────────────────
 // Every form that posts with fetch() instead of a native submit goes through here (or
 // through AjaxModal, which calls the same code path for its [data-panel-form] panels).
