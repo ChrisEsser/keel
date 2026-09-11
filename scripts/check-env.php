@@ -104,6 +104,36 @@ printf(
 
 Env::load(__DIR__ . '/../config/.env');
 
+// ── Configuration ─────────────────────────────────────────────────────────────────────────────
+
+// Every variable .env.example names must exist in .env, even if blank.
+//
+// The failure this catches is a quiet one: a change that introduces a new variable deploys
+// perfectly, and then fails in whatever request first reads it -- or worse, doesn't fail at all
+// and silently takes the code's `?? ''` fallback, so the feature is just off and nobody is told.
+// .env.example is the manifest, so comparing against it is the check.
+//
+// Names only. Commented-out lines in the example are optional by construction and are skipped,
+// and a blank value is fine here -- what blank MEANS is for the per-feature checks below.
+$exampleVars = [];
+foreach (file(__DIR__ . '/../config/.env.example', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+    if (preg_match('/^([A-Z][A-Z0-9_]*)=/', $line, $m)) {
+        $exampleVars[] = $m[1];
+    }
+}
+$envVars = [];
+foreach (file(__DIR__ . '/../config/.env', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+    if (preg_match('/^([A-Z][A-Z0-9_]*)=/', $line, $m)) {
+        $envVars[] = $m[1];
+    }
+}
+$missingVars = array_values(array_diff($exampleVars, $envVars));
+check(
+    '.env matches .env.example',
+    $missingVars === [],
+    $missingVars === [] ? count($exampleVars) . ' variables' : 'missing: ' . implode(', ', $missingVars)
+);
+
 // ── Database ──────────────────────────────────────────────────────────────────────────────────
 
 $pdo = null;
