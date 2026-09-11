@@ -28,15 +28,38 @@ class SignupController
         private PublicFormGuard $guard,
     ) {}
 
+    /**
+     * Whether public registration is turned off (SIGNUPS_CLOSED in .env).
+     *
+     * For the install that is standing but not open for business yet -- deployed, reachable, and
+     * not meant to collect strangers. Blank or unset means open, so development and every existing
+     * install are unaffected.
+     *
+     * Deliberately narrow: it closes the two endpoints below and nothing else. Invitations keep
+     * working, so a team can still grow, and verify/complete are NOT gated -- somebody who
+     * requested a link before the switch flipped should still be able to finish.
+     */
+    public static function closed(): bool
+    {
+        return trim((string) ($_ENV['SIGNUPS_CLOSED'] ?? '')) !== '';
+    }
+
     public function show(Request $request): Response
     {
         if (Auth::check()) return Response::redirect('/dashboard');
+        if (self::closed()) {
+            return Response::html($this->view->render('auth/signup-closed', [], 'layouts/guest'));
+        }
         return Response::html($this->view->render('auth/signup', [], 'layouts/guest'));
     }
 
     public function submit(Request $request): Response
     {
         if (Auth::check()) return Response::redirect('/dashboard');
+        // A page explains it, so this is only reached by a stale tab or a direct post.
+        if (self::closed()) {
+            return Response::html($this->view->render('auth/signup-closed', [], 'layouts/guest'), 403);
+        }
 
         $input = $request->getBody();
         $firstName = trim($input['first_name'] ?? '');
