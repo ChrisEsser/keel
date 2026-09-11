@@ -23,6 +23,24 @@ class MailgunProvider implements MailProviderInterface, BatchMailProviderInterfa
             : 'https://api.mailgun.net/v3';
     }
 
+    // Mailgun adds a `Sender:` header of its own whenever the From domain differs from the domain
+    // the API call was made against. That is the normal case for anything sending on a customer's
+    // behalf: the From is their own domain while the registered Mailgun domain is a subdomain of
+    // it, or another domain entirely.
+    //
+    // Outlook renders a Sender that differs from From as "someone on behalf of someone else",
+    // which reads as a forgery to the recipient. Gmail ignores Sender and shows From, which is why
+    // this is invisible on one client and obvious on another.
+    //
+    // Setting it equal to From is the standard fix: a Sender identical to From carries no
+    // information, so clients stop announcing it. It touches neither DMARC (evaluated on the From
+    // domain) nor bounce routing (which follows the envelope, not this header). An explicit
+    // Sender passed in $headers still wins -- the loops below assign over this.
+    private function senderHeader(string $fromEmail): array
+    {
+        return $fromEmail === '' ? [] : ['h:Sender' => $fromEmail];
+    }
+
     public function send(
         string $to,
         string $fromEmail,
@@ -38,7 +56,7 @@ class MailgunProvider implements MailProviderInterface, BatchMailProviderInterfa
             'to'      => $to,
             'subject' => $subject,
             'text'    => $textBody,
-        ];
+        ] + $this->senderHeader($fromEmail);
         if ($htmlBody !== '') {
             $data['html'] = $htmlBody;
         }
@@ -85,7 +103,7 @@ class MailgunProvider implements MailProviderInterface, BatchMailProviderInterfa
             'subject'             => $subject,
             'text'                => $textBody,
             'recipient-variables' => json_encode($variables),
-        ];
+        ] + $this->senderHeader($fromEmail);
         if ($htmlBody !== '') {
             $data['html'] = $htmlBody;
         }
