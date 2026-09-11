@@ -1328,3 +1328,46 @@ function closeSidebar() {
 // toast(), confirmDialog() and the focus helpers (focusableWithin/firstFocusable/
 // trapTab, used by AjaxModal above) now live in public/js/feedback.js, loaded
 // before app.js in the main layout and standalone in the fullscreen builder.
+
+
+// ── FlashToast ───────────────────────────────────────────────────────────────
+
+/**
+ * A toast that survives the navigation that raised it.
+ *
+ * For the case where the right confirmation is the destination itself: creating a thing and
+ * landing ON that thing reads better than staying put with a toast over a list. But some of what
+ * you want to say is real information -- "imported 42, skipped 3" -- and a toast raised a moment
+ * before window.location changes is never seen by anybody.
+ *
+ * Stashed in sessionStorage and drained on arrival, because the page that would have shown it is
+ * being torn down. Read once and removed, so pressing Back doesn't replay it.
+ *
+ * Unlike a stashed navigation intent, there is no check on WHERE it surfaces: a message is only
+ * ever a message, so showing it on an unexpected page is untidy rather than wrong.
+ */
+const FlashToast = (() => {
+    const KEY = 'app.flash.toast';
+
+    function stash(message, kind = 'success') {
+        // Private-mode and blocked-storage both throw here. Losing the toast is the correct
+        // failure -- the navigation it belongs to is the thing that matters.
+        try { sessionStorage.setItem(KEY, JSON.stringify({ message, kind })); } catch (e) { /* no storage */ }
+    }
+
+    function drain() {
+        let payload = null;
+        try {
+            const raw = sessionStorage.getItem(KEY);
+            sessionStorage.removeItem(KEY);
+            payload = raw ? JSON.parse(raw) : null;
+        } catch (e) { return; }
+        if (payload && payload.message) toast(payload.message, payload.kind || 'success');
+    }
+
+    document.addEventListener('DOMContentLoaded', drain);
+
+    return { stash };
+})();
+
+window.FlashToast = FlashToast;
