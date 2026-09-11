@@ -237,6 +237,23 @@ textarea:focus {
     border-color: var(--ink-faint);
 }
 
+/* iOS Safari zooms the page in when a focused field's text is under 16px -- and does NOT zoom
+   back out when the keyboard closes, so the rest of the form is left scrolled sideways and the
+   user has to pinch out of it by hand. On touch devices every field is therefore 16px; the
+   compact size above is kept for pointer devices, where the behaviour doesn't exist.
+
+   The extra selectors are the places in app.css that set a smaller size of their own and would
+   still trigger it. Keep this list in step with them. */
+@media (pointer: coarse) {
+    input:not([type=submit]):not([type=checkbox]):not([type=radio]),
+    select,
+    textarea,
+    .cr-select-sm,
+    .ps-search input {
+        font-size: 16px;
+    }
+}
+
 /* A required field left empty on submit -- set/cleared by AjaxModal (public/js/app.js).
    The <input> selectors must repeat the base rule's three :not() clauses above. Each :not()
    counts its argument's specificity, so that base rule scores (0,3,1) and sets the `border`
