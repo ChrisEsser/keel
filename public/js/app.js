@@ -814,9 +814,17 @@ class ApiList {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
         this.resource = containerId.replace(/-[^-]+$/, '');
-        this.options = { filter: true, pagination: true, perPage: 15, mapItem: null, emptyLabel: null, emptyHtml: null, onLoad: null, ...options };
+        this.options = { filter: true, pagination: true, perPage: 15, mapItem: null, renderItem: null, filterItems: null, emptyLabel: null, emptyHtml: null, onLoad: null, onRender: null, ...options };
         this.load();
     }
+
+    /**
+     * The rows currently loaded, as the server sent them.
+     *
+     * A copy, not the array itself: a caller that sorted it in place would silently reorder the
+     * list on the next render, from a line that looks like it only reads.
+     */
+    get data() { return [...this.#data]; }
 
     #fillTemplate(data) {
         const tpl = document.getElementById(`${this.resource}-tpl`);
@@ -863,7 +871,11 @@ class ApiList {
         // display every list uses — inviting the user to create something mid-search is wrong.
         const searching = (this.#searchInput?.value.trim() ?? '') !== '';
         if (this.options.emptyHtml && !searching) {
-            wrap.innerHTML = this.options.emptyHtml;
+            // Callable so it can describe the CURRENT state rather than a fixed one -- a list
+            // narrowed by a client-side filter is empty for a different reason, and says so.
+            wrap.innerHTML = typeof this.options.emptyHtml === 'function'
+                ? this.options.emptyHtml()
+                : this.options.emptyHtml;
             return wrap;
         }
         const icon = document.createElement('i');
@@ -890,18 +902,63 @@ class ApiList {
 
     #render(items) {
         const container = document.getElementById(this.containerId);
+
+        // A client-side narrowing of what the server already sent -- a folder chip, a status
+        // toggle -- filtering on a field every row carries.
+        //
+        // Correct ONLY for a list that is whole, i.e. pagination:false. Filtering a PAGE shows an
+        // empty folder whose contents were on page two, which reads as data loss rather than as a
+        // paging artifact.
+        if (this.options.filterItems) {
+            items = items.filter(this.options.filterItems);
+        }
+
         if (!items.length) {
             this.#showEmpty(container);
+            this.#afterRender();
             return;
         }
         this.#emptyEl?.remove();
         this.#emptyEl = null;
         container.replaceChildren();
-        items.forEach(item => {
-            const mapped = this.options.mapItem ? this.options.mapItem(item) : item;
-            container.appendChild(this.#fillTemplate(mapped));
-        });
+
+        // renderItem is for a list whose rows a <template> cannot express -- a card with
+        // conditional badges, an optional link, a note that is only sometimes there.
+        //
+        // Note the difference in who owns escaping. The template path substitutes into text nodes
+        // and attribute values, so it cannot emit markup no matter what a row contains. A renderer
+        // building its own HTML string is responsible for escaping what it interpolates (esc() is
+        // right there), exactly as it was before it was handed to this class.
+        if (this.options.renderItem) {
+            container.insertAdjacentHTML('beforeend', items.map(item =>
+                this.options.renderItem(this.options.mapItem ? this.options.mapItem(item) : item)
+            ).join(''));
+        } else {
+            items.forEach(item => {
+                const mapped = this.options.mapItem ? this.options.mapItem(item) : item;
+                container.appendChild(this.#fillTemplate(mapped));
+            });
+        }
+
         if (typeof lucide !== 'undefined') lucide.createIcons();
+        this.#afterRender();
+    }
+
+    /**
+     * Called every time the list is drawn, whether that came from a fetch or from rerender().
+     *
+     * onLoad is NOT this: it fires once per response, so anything it attached to a row was
+     * silently lost the moment the list re-drew from rows already in hand. Anything that must
+     * survive a re-render belongs here.
+     */
+    #afterRender() {
+        // Rows arrive long after DOMContentLoaded, so the page-load pass over [data-utc] never
+        // sees them. Every list gets one here instead, which is what lets a row template write
+        // <time data-utc="{{created_at}}"> and have it simply work -- the alternative was each
+        // endpoint formatting a date server-side, where the reader's timezone is not known.
+        const container = document.getElementById(this.containerId);
+        if (container) hydrateUtcStamps(container);
+        this.options.onRender?.(this.#data);
     }
 
     #update() {
@@ -998,6 +1055,15 @@ class ApiList {
                 () => this.#showMessage(container, `Failed to load ${this.resource}.`, 'red')
             );
     }
+
+    /**
+     * Re-draw from the rows already fetched, without asking the server again.
+     *
+     * For a filter that lives in the browser: switching folder changes which rows are shown, not
+     * which rows exist. reload() would also work, and would spend a request per click to receive
+     * the same list back.
+     */
+    rerender() { this.#update(); }
 
     reload() { this.load(); }
 
