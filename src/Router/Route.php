@@ -17,6 +17,12 @@ class Route
 
     public function matches(string $method, string $uri): bool
     {
+        // HEAD is GET without a body (RFC 9110 §9.3.2); the server drops the body for us. Without
+        // this, uptime monitors and link checkers that probe with HEAD get a 404 from every route.
+        if ($method === 'HEAD') {
+            $method = 'GET';
+        }
+
         if ($this->method !== $method) {
             return false;
         }
