@@ -212,6 +212,7 @@ function promptDialog(message, opts = {}) {
         cancelText = 'Cancel',
         danger = false,
         placeholder = '',
+        value = '',   // pre-filled and selected, for "rename this" rather than "tell us why"
         maxLength = 255,
     } = opts;
 
@@ -236,18 +237,22 @@ function promptDialog(message, opts = {}) {
         overlay.querySelector('.confirm-message').textContent = message;
         const input = overlay.querySelector('.confirm-input');
         input.placeholder = placeholder;
+        input.value = value;
         input.maxLength = maxLength;
         const okBtn = overlay.querySelector('.confirm-ok');
         const cancelBtn = overlay.querySelector('.confirm-cancel');
         okBtn.textContent = confirmText;
         cancelBtn.textContent = cancelText;
         okBtn.classList.add(danger ? 'btn-danger' : 'btn-primary');
-        okBtn.disabled = true;
+        okBtn.disabled = input.value.trim() === '';
 
         document.body.appendChild(overlay);
         const prevFocus = document.activeElement;
         // Focus the box, not the button: there is nothing to confirm until something is typed.
         input.focus();
+        // A pre-filled value is selected, so typing replaces it outright and Enter alone accepts
+        // it -- renaming to something else and keeping the name are both one gesture.
+        input.select();
 
         const cleanup = result => {
             document.removeEventListener('keydown', onKey, true);
