@@ -159,14 +159,24 @@ Apache with `mod_rewrite`, or any server that routes everything to `public/index
 
 ```bash
 composer install
-php tests/resolve.php          # every class loads and every referenced type resolves
+tests/run.sh                   # every test file; exits non-zero on any failure
+tests/run.sh php               # or js, or a substring of a filename
+php tests/resolve.php          # or run one directly
 ```
 
-`resolve.php` is the whole test suite, and deliberately so — no PHPUnit, no static analyser, no
-dev dependencies at all. It catches the failure this codebase actually has (a class or a type
-reference that doesn't resolve, usually after a rename or a move) and nothing else. Reach for a
-real analyser when you have a real reason; installing one costs 47MB of `vendor/` and a tool you
-run twice a year.
+`resolve.php` is the whole test suite as shipped, and deliberately so — no PHPUnit, no static
+analyser, no dev dependencies at all. It catches the failure this codebase actually has (a class
+or a type reference that doesn't resolve, usually after a rename or a move) and nothing else.
+Reach for a real analyser when you have a real reason; installing one costs 47MB of `vendor/` and
+a tool you run twice a year.
+
+`run.sh` is just the loop, so your application's tests can follow the same shape: one standalone
+script per file, its own `ok()` helper, a "N passed, M failed" line, non-zero exit on failure.
+Keeping each file runnable on its own is the point — it is how you actually debug one.
+
+It refuses to run when `APP_URL` looks like production, because a test that writes rows writes
+them to whatever database `config/.env` names. Production should not have `tests/` checked out at
+all; this is the belt for when it does.
 
 ## License
 
