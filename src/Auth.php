@@ -79,9 +79,36 @@ final class Auth
         return $id ? UserModel::find((int) $id) : null;
     }
 
+    // Memo for check(): whether the session's user_id actually loads, for this request only.
+    // check() is called from layouts, guards and controllers many times per request, and without
+    // this the self-heal below would cost a query every time.
+    private static ?bool $sessionUserLoads = null;
+
     public static function check(): bool
     {
-        return isset($_SESSION['user_id']);
+        if (!isset($_SESSION['user_id'])) {
+            return false;
+        }
+
+        // A session whose user no longer loads must read as signed out rather than fatal on the
+        // first ->id downstream. Two ways to get one: the account was deleted (or hard-deleted in
+        // a database console) while that browser stayed signed in, or a hand-made session names an
+        // id that was never there. Both used to reach a controller as "logged in" and then crash
+        // on Auth::user()->id, which is a 500 on every page for that one visitor until they think
+        // to clear their cookies.
+        //
+        // Dropping the identifiers is what makes it self-healing: the next request has no
+        // user_id at all and takes the cheap path above.
+        if (self::$sessionUserLoads === null) {
+            self::$sessionUserLoads = self::actualUser() !== null;
+        }
+
+        if (!self::$sessionUserLoads) {
+            unset($_SESSION['user_id'], $_SESSION['impersonate_id']);
+            return false;
+        }
+
+        return true;
     }
 
     // Checks the real user's is_admin flag — impersonation cannot grant admin access.
