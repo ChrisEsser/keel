@@ -33,6 +33,25 @@ return function (PDO $pdo): void {
 Returning a closure (rather than plain top-level statements) gives each file its own
 variable scope when the runner `require`s many of them in a single process.
 
+## Name the collation on every new table
+
+End every `CREATE TABLE` with the same clause the baseline uses:
+
+```sql
+ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+```
+
+Naming only the charset is not enough. A table that says `DEFAULT CHARSET=utf8mb4` and
+stops there gets the *charset's* default collation, which is `utf8mb4_0900_ai_ci` on
+MySQL 8 and `utf8mb4_general_ci` on MySQL 5.7 — neither of which is what `schema.sql`
+uses. Nothing complains at `CREATE` time. It surfaces much later, as
+`1267 Illegal mix of collations`, on the first query that joins or compares a column in
+the new table against one in an old one.
+
+Columns holding tokens, ids or fixed vocabularies may use
+`CHARACTER SET ascii COLLATE ascii_general_ci`, as several in the baseline already do —
+that is a deliberate narrowing, not drift.
+
 ## Write migrations that are safe to retry
 
 MySQL DDL (`CREATE`/`ALTER`/`DROP TABLE`) auto-commits and is **not** rolled back if a

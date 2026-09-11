@@ -2,3 +2,19 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
+
+# PHP's stock 2M upload ceiling is below what most applications allow themselves, and the mismatch
+# does not fail usefully: a file over the PHP limit never reaches the application at all. $_FILES
+# arrives empty, the handler reports a generic failure, and it reads as a bug rather than a limit.
+# Raise it here to something above whatever your upload endpoints accept.
+#
+# post_max_size sits above upload_max_filesize so the multipart envelope -- the file plus the form
+# fields around it -- has room. Were they equal, a file at exactly the limit would fail on a few
+# hundred bytes of surrounding form data.
+#
+# Guarded, because these directives are only legal under mod_php. Under PHP-FPM the same lines are
+# a fatal Apache error on EVERY request, and the equivalent belongs in the FPM pool config instead.
+<IfModule mod_php.c>
+    php_value upload_max_filesize 25M
+    php_value post_max_size 32M
+</IfModule>
