@@ -40,7 +40,7 @@ const OPTIONAL_EXTENSIONS = [
     'sodium'   => 'Framework\Security\Crypto — encrypts TOTP secrets at rest. Required if you use two-factor.',
     'curl'     => 'stripe/stripe-php. Required if you use Framework\Billing.',
     'gd'       => 'image work. Not used by the framework itself.',
-    'fileinfo' => 'MIME sniffing for uploads. Not used by the framework itself.',
+    'fileinfo' => 'Framework\Http\UploadGuard::validateDocument — sniffs a document\'s real type. Required if you accept file uploads.',
 ];
 
 $isCli = PHP_SAPI === 'cli';
