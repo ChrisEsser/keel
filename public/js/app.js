@@ -7,19 +7,88 @@ function esc(s) {
 
 
 // ── Date formatting ─────────────────────────────────────────────────────────
+// Every stamp the API hands the browser is UTC -- Database::connect() pins the MySQL session and
+// check-env.php asserts date.timezone on both SAPIs -- but a MySQL datetime string carries no
+// timezone suffix, so `new Date("2026-09-11 21:27:00")` is parsed as LOCAL time. That is not an
+// error; it is a silently wrong answer, correct only for readers who happen to be in UTC.
+// Appending the Z is the whole fix, and every screen showing a datetime should come through here
+// rather than reinvent it.
 
+function _parseUtc(str) {
+    const d = new Date(String(str).replace(' ', 'T') + 'Z');
+    return isNaN(d) ? null : d;
+}
+
+// Compact, for a table cell.
 function fmtDate(str) {
     if (!str) return '—';
-    // MySQL datetime strings are stored in UTC (PHP's date.timezone is UTC)
-    // but have no timezone suffix, so append one to avoid the browser
-    // parsing them as local time.
-    const d = new Date(str.replace(' ', 'T') + 'Z');
-    if (isNaN(d)) return str;
+    const d = _parseUtc(str);
+    if (d === null) return str;
     return d.toLocaleString(navigator.language, {
         month: 'numeric', day: 'numeric', year: '2-digit',
         hour: 'numeric', minute: '2-digit',
     });
 }
+
+// The same instant in prose, for a status line with room to spell it out ("Sep 11, 2026 at
+// 2:27 AM"). Same parsing; the only thing that differs is how much of it is shown.
+function fmtDateLong(str) {
+    if (!str) return '—';
+    const d = _parseUtc(str);
+    if (d === null) return str;
+    const day = d.toLocaleDateString(navigator.language, { month: 'short', day: 'numeric', year: 'numeric' });
+    const time = d.toLocaleTimeString(navigator.language, { hour: 'numeric', minute: '2-digit' });
+    return `${day} at ${time}`;
+}
+
+// The day alone, spelled the way a card title or a heading already spells it ("Sep 10, 2026").
+function fmtDayLong(str) {
+    if (!str) return '—';
+    const d = _parseUtc(str);
+    if (d === null) return str;
+    return d.toLocaleDateString(navigator.language, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Date without the time, for a column too narrow to carry both.
+function fmtDay(str) {
+    if (!str) return '—';
+    const d = _parseUtc(str);
+    if (d === null) return str;
+    return d.toLocaleDateString(navigator.language);
+}
+
+/**
+ * Fills every [data-utc] element from its own stamp, so a server-rendered timestamp is shown in
+ * the READER's timezone rather than the server's.
+ *
+ * The server genuinely cannot do this -- it does not know where the reader is -- so a PHP date()
+ * call renders a UTC instant as though it were local and is hours out for everyone outside UTC.
+ * The fix is to emit the raw stamp and format it here:
+ *
+ *     <time data-utc="<?= $e($row->created_at) ?>"></time>
+ *
+ * data-utc-format picks the shape: "long" for the prose form, "day" for the day alone, omitted
+ * for the compact one. A date-only element must stay date-only -- quietly growing a time onto a
+ * card title is a regression even though the underlying fix is right.
+ */
+function hydrateUtcStamps(root = document) {
+    root.querySelectorAll('[data-utc]').forEach(el => {
+        const stamp = el.getAttribute('data-utc');
+        if (!stamp) return;
+        const how = el.dataset.utcFormat;
+        el.textContent = how === 'long' ? fmtDateLong(stamp)
+            : how === 'day' ? fmtDayLong(stamp)
+            : fmtDate(stamp);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => hydrateUtcStamps());
+
+window.fmtDate = fmtDate;
+window.fmtDateLong = fmtDateLong;
+window.fmtDayLong = fmtDayLong;
+window.fmtDay = fmtDay;
+window.hydrateUtcStamps = hydrateUtcStamps;
 
 
 // ── UUID generation ──────────────────────────────────────────────────────────
