@@ -1086,7 +1086,7 @@ class MultiSelect {
         el.style.position = 'relative';
         el.innerHTML = `
             <div class="ms-trigger">
-                <span class="ms-label">${placeholder}</span>
+                <span class="ms-label">${esc(placeholder)}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
             <div class="ms-drop"></div>
@@ -1101,7 +1101,9 @@ class MultiSelect {
 
     setItems(items) {
         this._drop.innerHTML = items.length === 0
-            ? '<div class="ms-empty">None available.</div>'
+            // Set `ms.emptyLabel` to say WHY it is empty -- "no lists yet", "none left to add" --
+            // which is usually the more useful sentence than the generic one.
+            ? `<div class="ms-empty">${esc(this.emptyLabel || 'None available.')}</div>`
             : items.map(i =>
                 `<label class="ms-item">
                     <input type="checkbox" value="${esc(i.value)}">
@@ -1111,7 +1113,23 @@ class MultiSelect {
         this._drop.querySelectorAll('input').forEach(cb =>
             cb.addEventListener('change', () => this._update())
         );
+        // Re-applied because setItems() just rebuilt the checkboxes the last call disabled.
+        this.setDisabled(this._disabled === true);
         this._update();
+    }
+
+    /**
+     * Lock the control without hiding it, the way a disabled <select> is locked.
+     *
+     * Shown rather than removed on purpose: a control that isn't there can't explain why it isn't
+     * there, and the reason belongs beside it -- so a reader who expected to find it here gets an
+     * answer instead of hunting for a control that was never missing.
+     */
+    setDisabled(flag) {
+        this._disabled = flag;
+        this.el.classList.toggle('ms-disabled', flag);
+        this._drop.querySelectorAll('input').forEach(cb => { cb.disabled = flag; });
+        if (flag) this._close();
     }
 
     getValues() {
@@ -1139,6 +1157,7 @@ class MultiSelect {
     }
 
     _toggle() {
+        if (this._disabled) return;
         const opening = !this._drop.classList.contains('ms-drop--open');
         if (opening) Object.values(_multiSelects).forEach(ms => ms._close());
         this._drop.classList.toggle('ms-drop--open', opening);
