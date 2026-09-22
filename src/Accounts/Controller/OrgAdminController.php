@@ -50,6 +50,12 @@ class OrgAdminController
         // around a staff page. The hub belongs under the admin nav, alongside /users/{uid}, and
         // /organizations stays highlighted by prefix.
         return Response::html($this->view->render('organizations/show', [
+            // No 'sidebarOrg' here, so the organization is not already named in the bar -- the
+            // trail carries it, under the admin list this screen belongs to.
+            'breadcrumbs' => [
+                ['label' => 'Organizations', 'url' => '/organizations'],
+                ['label' => $org->displayName()],
+            ],
             'org' => $org,
             'owner' => $this->owner($org),
             'team' => $this->team($org),

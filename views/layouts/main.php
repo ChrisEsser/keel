@@ -14,7 +14,11 @@
  * link renders as active; a link may also carry `matchAny => ['/a', '/b']` when one entry owns
  * several paths. A group renders collapsed unless one of its items is active.
  *
- * Omit `$nav` entirely and you get Keel's own default: the admin section for staff, and the
+ * A link may also carry `except => ['/fragment', ...]`: a path containing any of them is never
+ * active, however well it matches otherwise. It exists because one feature can live inside
+ * another's URL family -- see $isActive.
+ *
+ * Omit `$nav` entirely and you get Keel's own default: the admin group for staff, and the
  * current organization's dashboard for everyone else. That is enough to run the framework's
  * built-in screens and nothing else, which is the right starting point for a new application --
  * add your product's entries by passing `$nav` from your controllers, or by sharing a builder on
@@ -29,7 +33,11 @@
  * @var array|null  $nav          Navigation entries, as above.
  * @var array|null  $breadcrumbs  [['label' => ..., 'url' => ...|null], ...]. The controller knows
  *                                where it is; the layout does not.
- * @var array|null  $sidebarOrg   ['uid' => ..., 'name' => ...] -- draws the org header bar.
+ * @var array|null  $sidebarOrg   ['uid' => ..., 'name' => ...] -- names the organization in the bar.
+ * @var string|null $orgSwitchPath Where the org switcher sends you, appended to
+ *                                /organizations/{uid}. Defaults to '/dashboard'. A screen that
+ *                                exists for every organization should pass its own path, so
+ *                                switching keeps you where you were.
  */
 
 // Every screen in this layout is a legitimate "return target", so record it on the rewind stack.
@@ -43,7 +51,20 @@ $navPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
 
 $sidebarOrgs = [];
 $canEditOrg = false;
-if (\Framework\Auth::check() && !\Framework\Auth::effectiveIsAdmin()) {
+if (\Framework\Auth::check()) {
+    // Built from ACTUAL memberships, for admins too.
+    //
+    // This used to skip admins entirely, on the reasonable assumption that platform staff are not
+    // members of anything -- so the list would be empty and the switcher meaningless. That
+    // assumption breaks the moment the admin is also the customer, which is the normal case for a
+    // single-operator install: the person running several of their own organizations was handed no
+    // way to move between them.
+    //
+    // Reading real memberships is correct either way. Staff who belong to nothing still get an
+    // empty list and no switcher, exactly as before; an admin who genuinely belongs to three
+    // organizations gets the three they belong to -- never every organization on the platform,
+    // which is what the support hub at /organizations is for.
+    //
     // Memberships outlive their organization -- deleting an org doesn't cascade, so a null find()
     // here is a soft-deleted org and the membership must be dropped rather than rendered as a
     // blank, unclickable row.
@@ -69,6 +90,15 @@ if (isset($sidebarOrg)) {
 }
 
 $isActive = static function (array $item) use ($navPath): bool {
+    // `except` first, and it beats every other rule. A prefix is the only way to say "this entry
+    // owns a family of URLs", and sometimes another feature lives inside that family: an
+    // organization's own screens sit under /organizations/{uid}/, so the admin "Organizations"
+    // entry matched their prefix on every one of them -- lighting up as active and, now that the
+    // admin entries are a group, forcing that group open on a screen it has nothing to do with.
+    foreach ($item['except'] ?? [] as $fragment) {
+        if (str_contains($navPath, $fragment)) return false;
+    }
+
     foreach ($item['matchAny'] ?? [] as $prefix) {
         if (str_starts_with($navPath, $prefix)) return true;
     }
@@ -83,10 +113,14 @@ $isActive = static function (array $item) use ($navPath): bool {
 if (!isset($nav)) {
     $nav = [];
     if (\Framework\Auth::effectiveIsAdmin()) {
-        $nav[] = ['section' => 'Admin'];
-        $nav[] = ['label' => 'Activity', 'href' => '/activity', 'icon' => 'history'];
-        $nav[] = ['label' => 'Organizations', 'href' => '/organizations', 'icon' => 'building-2', 'match' => 'prefix'];
-        $nav[] = ['label' => 'Users', 'href' => '/users', 'icon' => 'users', 'match' => 'prefix'];
+        // One collapsible group rather than a flat section. The platform screens are a place staff
+        // visit occasionally; giving them three permanent rows at the top of every sidebar makes
+        // them look like the main event. The group opens itself when one of its own pages is
+        // active, so it can never hide where you already are.
+        //
+        // It lives on Framework\AdminNav rather than here because passing $nav REPLACES this whole
+        // default -- an application with its own navigation splices the group back in from there.
+        $nav[] = \Framework\AdminNav::group();
     }
     if (isset($sidebarOrg)) {
         $orgBase = '/organizations/' . $sidebarOrg['uid'];
@@ -150,11 +184,16 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
     </script>
 <?php endif; ?>
 
+<?php require __DIR__ . '/../partials/app-topbar.php'; ?>
+
+<?php // No account footer any more -- that moved to the topbar. The brand stays: it caps the rail,
+      // which runs the full height of the window, and a dark column starting below a bar reads as a
+      // panel hanging off it rather than as the shell's spine. The one scroll container is <nav>. ?>
 <aside class="sidebar" id="app-sidebar">
-    <div class="sidebar-brand">
+    <a class="sidebar-brand" href="/dashboard">
         <img src="/img/logo-mark.svg" alt="" class="sidebar-brand-icon">
         <span><?= $e(\Framework\Brand::name()) ?></span>
-    </div>
+    </a>
     <nav>
         <?php foreach ($nav as $entry): ?>
             <?php if (isset($entry['section'])): ?>
@@ -167,8 +206,13 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
                 }
                 ?>
                 <div class="sidebar-nav-group <?= $groupOpen ? 'open' : '' ?>">
+                    <?php // toggleNavGroup() rather than an inline classList.toggle: the inline
+                          // version left aria-expanded reporting whatever state the page was
+                          // rendered in, so a screen reader was told "collapsed" about a section
+                          // the user had just opened. ?>
                     <button class="sidebar-nav-group-toggle" type="button"
-                            onclick="this.closest('.sidebar-nav-group').classList.toggle('open')">
+                            aria-expanded="<?= $groupOpen ? 'true' : 'false' ?>"
+                            onclick="toggleNavGroup(this)">
                         <?php if (isset($entry['icon'])): ?><i data-lucide="<?= $e($entry['icon']) ?>"></i><?php endif; ?>
                         <?= $e($entry['label'] ?? '') ?>
                         <i data-lucide="chevron-right" class="sidebar-nav-group-chevron"></i>
@@ -190,54 +234,11 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
             <?php endif; ?>
         <?php endforeach; ?>
     </nav>
-    <?php if (\Framework\Auth::check()): ?>
-        <div class="sidebar-user">
-            <a href="#" onclick="ModalLoader.open('user-settings', '<?= $e(\Framework\Auth::user()?->uid) ?>'); return false;"><i data-lucide="settings"></i>&nbsp;&nbsp;<?= $e(\Framework\Auth::user()?->fullName()) ?></a><br>
-            <a href="/logout"><i data-lucide="log-out"></i>&nbsp;&nbsp;Sign out</a>
-        </div>
-    <?php endif; ?>
 </aside>
 
 <div class="sidebar-backdrop" onclick="closeSidebar()"></div>
 
 <div class="page-wrap">
-    <div class="mobile-topbar">
-        <button class="mobile-nav-toggle" type="button" aria-label="Open navigation menu"
-                aria-expanded="false" aria-controls="app-sidebar" onclick="toggleSidebar()">
-            <i data-lucide="menu"></i>
-        </button>
-        <span class="mobile-topbar-brand"><?= $e(\Framework\Brand::name()) ?></span>
-    </div>
-    <?php if (isset($sidebarOrg)): ?>
-        <div class="org-header-bar">
-            <div class="breadcrumb">
-                <?php foreach ($breadcrumbs ?? [] as $i => $crumb): ?>
-                    <?php if ($i > 0): ?><span class="breadcrumb-sep">›</span><?php endif; ?>
-                    <?php if (!empty($crumb['url'])): ?>
-                        <a href="<?= $e($crumb['url']) ?>"><?= $e($crumb['label']) ?></a>
-                    <?php else: ?>
-                        <span class="breadcrumb-current"><?= $e($crumb['label']) ?></span>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </div>
-            <div class="org-header-controls">
-                <?php if (!\Framework\Auth::effectiveIsAdmin() && count($sidebarOrgs) > 1): ?>
-                    <select onchange="window.location='/organizations/'+this.value+'/dashboard'">
-                        <?php foreach ($sidebarOrgs as $so): ?>
-                        <option value="<?= $e($so['uid']) ?>" <?= $so['uid'] === $sidebarOrg['uid'] ? 'selected' : '' ?>>
-                            <?= $e($so['name']) ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                <?php else: ?>
-                    <span class="org-header-name"><?= $e($sidebarOrg['name']) ?></span>
-                <?php endif; ?>
-                <?php if ($canEditOrg): ?>
-                    <button class="btn btn-ghost-primary btn-sm" onclick="ModalLoader.open('org-settings', '<?= $e($sidebarOrg['uid']) ?>')"><i data-lucide="settings"></i> Settings</button>
-                <?php endif; ?>
-            </div>
-        </div>
-    <?php endif; ?>
     <div class="page-content" id="main-content" tabindex="-1">
         <?php if (isset($sidebarOrg) && \Framework\Auth::check()): ?>
             <?php require __DIR__ . '/../partials/account-alerts.php'; ?>

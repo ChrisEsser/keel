@@ -66,7 +66,8 @@ to `src/` — so `src/Model/Model.php` is `Framework\Model\Model` and `src/Model
 |---|---|
 | Add a route | `config/container.php`, in the marked block at the end of the app router |
 | Add a screen | `src/Controller/`, `views/`, plus that route |
-| Change the sidebar | Pass `$nav` from your controllers — see the docblock in `views/layouts/main.php` |
+| Change the sidebar | Pass `$nav` from your controllers — see the docblock in `views/layouts/main.php`. Passing it replaces the default, so splice `Framework\AdminNav::group()` back in to keep the admin links |
+| Change the top bar | `views/partials/app-topbar.php` — `.topbar-icon-btn` is the slot for a control of your own |
 | Change the schema | Add a file to `scripts/migrations/`, run `php scripts/migrate.php` |
 | Change what a role may do | `Framework\Accounts\Model\Role` and `Framework\Accounts\OrgGuard` |
 | Add to the support hub | `OrgAdminController::show()` and `views/organizations/show.php` |

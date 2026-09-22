@@ -32,7 +32,9 @@ class OrganizationController
         if (!Auth::check()) return Response::redirect('/login');
         if (!Auth::isAdmin()) return Response::redirect('/dashboard');
 
-        return Response::html($this->view->render('organizations/list', []));
+        return Response::html($this->view->render('organizations/list', [
+            'breadcrumbs' => [['label' => 'Organizations']],
+        ]));
     }
 
     public function get(Request $request): Response
@@ -91,6 +93,9 @@ class OrganizationController
         $canManage = OrgGuard::canManageContent($org);
 
         $html = $this->view->render('organizations/dashboard', [
+            // The organization itself is crumb zero, drawn by the topbar's own control -- so the
+            // trail starts after it.
+            'breadcrumbs' => [['label' => 'Dashboard']],
             'organization' => $org->toArray(),
             'sidebarOrg' => ['uid' => $org->uid, 'name' => $org->displayName()],
             'canManage' => $canManage,
@@ -200,6 +205,10 @@ class OrganizationController
         if ($uid === null) {
             if (!Auth::isAdmin()) return Response::redirect('/organizations');
             return Response::html($this->view->render('organizations/edit', [
+                'breadcrumbs' => [
+                    ['label' => 'Organizations', 'url' => '/organizations'],
+                    ['label' => 'New Organization'],
+                ],
                 'organization' => null,
                 'sidebarOrg' => null,
             ]));
@@ -213,6 +222,7 @@ class OrganizationController
         }
 
         return Response::html($this->view->render('organizations/edit', [
+            'breadcrumbs' => [['label' => 'Edit']],
             'organization' => $org->toArray(),
             'sidebarOrg' => ['uid' => $org->uid, 'name' => $org->displayName()],
         ]));

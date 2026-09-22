@@ -36,6 +36,7 @@ class ActivityController
             ? UserModel::findByUid($uid) : null;
 
         return Response::html($this->view->render('activity/index', [
+            'breadcrumbs' => [['label' => 'Activity']],
             'events' => AdminLog::EVENTS,
             'categories' => AdminLog::CATEGORIES,
             'scopeOrg' => $org === null ? null : ['uid' => $org->uid, 'name' => $org->displayName()],

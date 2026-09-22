@@ -26,7 +26,9 @@ class UserController
         if (!Auth::check()) return Response::redirect('/login');
         if (!Auth::isAdmin()) return Response::redirect('/dashboard');
 
-        $html = $this->view->render('users/list', []);
+        $html = $this->view->render('users/list', [
+            'breadcrumbs' => [['label' => 'Users']],
+        ]);
         return Response::html($html);
     }
 
@@ -75,6 +77,10 @@ class UserController
         }, MembershipModel::findByUser($user->id)));
 
         $html = $this->view->render('users/show', [
+            'breadcrumbs' => [
+                ['label' => 'Users', 'url' => '/users'],
+                ['label' => $user->fullName()],
+            ],
             'user' => $user->toArray(),
             'memberships' => $memberships,
         ]);
@@ -90,6 +96,10 @@ class UserController
         if ($uid === null) {
             if (!Auth::isAdmin()) return Response::redirect('/users');
             return Response::html($this->view->render('users/edit', [
+                'breadcrumbs' => [
+                    ['label' => 'Users', 'url' => '/users'],
+                    ['label' => 'New User'],
+                ],
                 'user' => null,
                 'cancelUrl' => '/users',
             ]));
@@ -104,7 +114,18 @@ class UserController
 
         $cancelUrl = Auth::isAdmin() ? "/users/$uid" : '/dashboard';
 
+        // A user editing their own profile is not coming from /users -- they cannot see it. Their
+        // trail is the one screen they are on.
+        $breadcrumbs = Auth::isAdmin()
+            ? [
+                ['label' => 'Users', 'url' => '/users'],
+                ['label' => $user->fullName(), 'url' => "/users/$uid"],
+                ['label' => 'Edit'],
+            ]
+            : [['label' => 'Edit User']];
+
         return Response::html($this->view->render('users/edit', [
+            'breadcrumbs' => $breadcrumbs,
             'user' => $user->toArray(),
             'cancelUrl' => $cancelUrl,
         ]));

@@ -1334,6 +1334,93 @@ function closeSidebar() {
 }
 
 
+// -- Collapsible sidebar groups and the topbar menus -------------------------
+//
+// The topbar's two drops (the organization and the account, in
+// views/partials/app-topbar.php) do not work without initTopbarMenu -- it is what opens them,
+// closes them on an outside click or Escape, and moves focus between the items.
+
+// The rail's collapsible sections (views/layouts/main.php). This was an inline classList.toggle
+// on each toggle button, which left aria-expanded permanently reporting the state the page was
+// rendered in -- so a screen reader was told "collapsed" on a section the user had just opened.
+// The server still renders the honest starting value; this keeps it honest afterwards.
+function toggleNavGroup(btn) {
+    const open = btn.closest('.sidebar-nav-group').classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+const _topbarMenus = [];
+
+function initTopbarMenu(root) {
+    // Keyed on the ARIA contract rather than a class: the two triggers look nothing alike (the
+    // org one is a breadcrumb crumb, the account one a pill with an avatar) and carry different
+    // classes, but aria-haspopup is exactly what makes either of them a menu trigger.
+    const trigger = root.querySelector('[aria-haspopup="menu"]');
+    const drop = root.querySelector('.topbar-menu-drop');
+    if (!trigger || !drop) return;
+    const items = () => [...drop.querySelectorAll('[role="menuitem"]')];
+
+    const isOpen = () => !drop.hidden;
+    const close = refocus => {
+        if (!isOpen()) return;
+        drop.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        if (refocus) trigger.focus();
+    };
+    const open = () => {
+        // Two menus open at once would be two competing focus owners in one bar.
+        _topbarMenus.forEach(m => m !== close && m(false));
+        drop.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        items()[0]?.focus();
+    };
+    _topbarMenus.push(close);
+
+    trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        isOpen() ? close(false) : open();
+    });
+
+    // Capture phase: an item that opens a modal stops propagation on the way up, which would
+    // otherwise leave this menu hanging open behind the modal it just opened.
+    document.addEventListener('click', e => {
+        if (!root.contains(e.target)) close(false);
+    }, true);
+
+    root.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            close(true);
+        } else if (e.key === 'Tab') {
+            close(false);
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!isOpen()) { open(); return; }
+            const list = items();
+            const at = list.indexOf(document.activeElement);
+            const next = e.key === 'ArrowDown'
+                ? (at + 1) % list.length
+                : (at <= 0 ? list.length - 1 : at - 1);
+            list[next]?.focus();
+        } else if (e.key === 'Home' && isOpen()) {
+            e.preventDefault();
+            items()[0]?.focus();
+        } else if (e.key === 'End' && isOpen()) {
+            e.preventDefault();
+            items().at(-1)?.focus();
+        }
+    });
+
+    // Anything that acts closes the menu; a modal opened from here takes focus itself.
+    drop.addEventListener('click', e => {
+        if (e.target.closest('[role="menuitem"]')) close(false);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.topbar-menu').forEach(initTopbarMenu);
+});
+
+
 // toast(), confirmDialog() and the focus helpers (focusableWithin/firstFocusable/
 // trapTab, used by AjaxModal above) now live in public/js/feedback.js, loaded
 // before app.js in the main layout and standalone in the fullscreen builder.

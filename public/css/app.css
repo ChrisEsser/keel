@@ -523,25 +523,276 @@ a.entity-card { text-decoration: none; color: inherit; cursor: pointer; }
 
 /* ── Layout: Main Shell ───────────────────────────────── */
 
+/* The app's one persistent chrome bar (views/partials/app-topbar.php). It replaced two bars
+   that each only existed half the time -- .mobile-topbar below 860px and .org-header-bar when
+   an org was in scope -- and it carries what used to be the sidebar's footer.
+
+   Fixed rather than sticky: body.sidebar-open sets overflow:hidden below 860px, which changes
+   which box a sticky element resolves against, and the bar has to stay pinned while the drawer
+   is open so the hamburger that closes it is still reachable. .banner above it is fixed too, so
+   the whole chrome stack is one model.
+
+   White, not --ink: a full-width dark bar on top of the full-height dark rail draws a large
+   near-black "L" and visually re-fuses the two regions this change exists to separate. */
+:root { --topbar-h: 56px; --sidebar-w: 220px; }
+
+/* Anchor targets land below the fixed chrome instead of behind it. */
+html { scroll-padding-top: calc(var(--banner-offset, 0px) + var(--topbar-h)); }
+
+/* Sits over the CONTENT column, not the whole window: the rail runs the full height of the
+   viewport and the brand caps it, so the bar starts where the rail ends. A bar spanning the
+   window instead leaves the rail starting 56px down, and a dark column that begins below a
+   bar reads as a panel hanging off it rather than as the shell's spine.
+   Below 860px the rail is off-canvas, so the bar goes full width and picks up the hamburger. */
+.app-topbar {
+    position: fixed;
+    top: var(--banner-offset, 0px);
+    left: var(--sidebar-w);
+    right: 0;
+    height: var(--topbar-h);
+    z-index: 250;           /* over .sidebar (200) and .sidebar-backdrop (190);
+                               under .banner (300) and every modal (1000+) */
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    /* Never give this overflow: the menus' drops are children and would be clipped.
+       Anything that needs to truncate does it on .app-topbar-scope instead. */
+}
+
+/* Brand + hamburger. Only below the breakpoint -- above it the brand lives in the rail. */
+.app-topbar-lead {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.app-topbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-decoration: none;
+}
+.app-topbar-brand:hover { color: var(--accent); }
+.app-topbar-brand-icon { width: 26px; height: 26px; flex-shrink: 0; }
+
+/* min-width:0 lets this shrink below its content, so the breadcrumb is what gives way on a
+   narrow screen rather than the account cluster.
+   NO overflow here: the org menu is a child, and a clipped popup is only half the damage --
+   focusing an item inside an overflow:hidden box scrolls that box to reveal it, which shoved the
+   trigger and the whole breadcrumb out of sight the moment the menu opened. Truncation belongs
+   on the breadcrumb itself, one level down. */
+.app-topbar-scope {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.app-topbar-scope .breadcrumb { min-width: 0; overflow: hidden; white-space: nowrap; }
+.app-topbar-scope .breadcrumb a,
+.app-topbar-scope .breadcrumb-current { overflow: hidden; text-overflow: ellipsis; }
+
+/* The org is the trail's root and its own control. Styled as a slightly stronger breadcrumb
+   crumb rather than as a button, so the line still reads as one path. */
+.topbar-org-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 16rem;
+    padding: 0.25rem 0.4rem;
+    background: none;
+    border: 0;
+    border-radius: var(--radius);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+}
+/* colour is restated, not just background: base.css's `button:hover` sets `color: #fff` on every
+   bare <button>, so a hover rule here that only changes the background gets white text handed to
+   it by the element selector underneath. Same reason every other bare button in this bar names
+   both. */
+.topbar-org-trigger:hover,
+.topbar-org-trigger[aria-expanded="true"] { background: var(--surface-alt); color: var(--ink); }
+.topbar-org-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Same place in the line, for someone with nothing to do to this org. */
+.topbar-org-static {
+    max-width: 16rem;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius);
+    color: var(--ink-muted);
+    cursor: pointer;
+}
+.topbar-icon-btn:hover { background: var(--surface-alt); color: var(--ink); }
+.topbar-icon-btn [data-lucide] { width: 1.15rem; height: 1.15rem; }
+
+.app-topbar-account {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.topbar-menu { position: relative; }
+
+.topbar-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: 14rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+}
+.topbar-menu-trigger:hover,
+.topbar-menu-trigger[aria-expanded="true"] { background: var(--surface-alt); color: var(--ink); }
+
+/* The initials disc. line-height carries the vertical centring and align-items does NOT, which
+   looks redundant until you measure it: Poppins' font box is asymmetric around its capitals
+   (ascent 1.0417em, descent 0.3472em, cap height 0.7813em, and initials have no descenders at
+   all). align-items: center centres that FONT box, so the empty descent space below the baseline
+   pushes the letters half a pixel above the middle of a 28px circle -- small, but on a filled
+   disc the eye reads it immediately. A line-height equal to the circle's own height centres the
+   letters instead: measured -0.02px off centre, against -0.31px before, identically at 1x, 2x
+   and 3x. The size is a variable so the two can never drift apart. */
+.topbar-avatar {
+    --avatar-size: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    line-height: var(--avatar-size);
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.topbar-menu-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-menu-chevron { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.6; }
+
+/* Same card as .ms-drop on purpose: the app already has one popover look, and a second would
+   just be a second thing to keep in sync. */
+.topbar-menu-drop {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 15rem;
+    padding: 0.3rem 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    z-index: 1;   /* inside .app-topbar's own stacking context; the 250 above does the real work */
+}
+.topbar-menu-drop[hidden] { display: none; }
+/* The org menu hangs off the left of the bar, under the crumb it belongs to. */
+.topbar-menu-drop--left { left: 0; right: auto; }
+
+.topbar-menu-label {
+    padding: 0.5rem 0.85rem 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+}
+/* A label already separates what follows; a rule on top of it would be two dividers. */
+.topbar-menu-label + .topbar-menu-item { margin-top: 0; }
+
+.topbar-menu-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.5rem 0.85rem 0.6rem;
+    margin-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.topbar-menu-head-name { font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.topbar-menu-head-email { font-size: var(--text-xs); color: var(--ink-subtle); word-break: break-all; }
+.topbar-menu-head-alt { margin-top: 0.2rem; font-size: var(--text-xs); color: var(--warn); }
+
+.topbar-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.5rem 0.85rem;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: 0.875rem;
+    text-align: left;
+    text-decoration: none;
+    color: var(--ink-muted);
+    cursor: pointer;
+}
+.topbar-menu-item:hover { background: var(--surface-hover); color: var(--ink); }
+.topbar-menu-item [data-lucide] { width: 15px; height: 15px; flex-shrink: 0; }
+.topbar-menu-item--danger { color: var(--danger); }
+.topbar-menu-item--danger:hover { background: var(--surface-alt); color: var(--danger-hover); }
+
 .sidebar {
     position: fixed;
     top: var(--banner-offset, 0px);
     left: 0;
     bottom: 0;
-    width: 220px;
+    width: var(--sidebar-w);
     background: var(--ink);
     color: var(--ink-faint);
     display: flex;
     flex-direction: column;
     z-index: 200;
-    overflow-y: auto;
+    /* No overflow here, deliberately. <nav> below is the scroll container; an outer one could
+       never fire anyway (nav's flex:1 + overflow:auto pins this box to the viewport) and only
+       ever acted as a scroll-chain trap for wheel events over the old account footer, which
+       silently scrolled the page behind instead. */
 }
 
 .sidebar-brand {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.5rem;
     font-family: 'Nunito', sans-serif;
     font-size: 1.15rem;
     font-weight: 800;
@@ -549,7 +800,18 @@ a.entity-card { text-decoration: none; color: inherit; cursor: pointer; }
     letter-spacing: 0.01em;
     border-bottom: 1px solid rgba(255,255,255,0.07);
     flex-shrink: 0;
+    text-decoration: none;   /* it is an <a> to /dashboard in the app shell, a <div> in the editors */
 }
+/* Scoped to the app rail: pinned to the topbar's height so the rule under the brand and the bar's
+   bottom border are the same line across the junction at the rail's edge. Off by 5px otherwise.
+   The scoping is what lets a fullscreen editor reuse .sidebar-brand outside .sidebar and keep a
+   height of its own. */
+.sidebar .sidebar-brand {
+    height: var(--topbar-h);
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+}
+.sidebar .sidebar-brand:hover { color: #fff; }
 
 .sidebar-brand-icon {
     width: 28px;
@@ -557,7 +819,26 @@ a.entity-card { text-decoration: none; color: inherit; cursor: pointer; }
     flex-shrink: 0;
 }
 
-.sidebar nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; }
+/* The one scroll container in the rail. overflow-y is load-bearing twice over: it makes the
+   flex item's automatic minimum size resolve to 0 (so this actually shrinks and scrolls rather
+   than pushing the sidebar taller), and overscroll-behavior stops a gesture that reaches the
+   end of the list from chaining to the document and scrolling the page behind it. */
+.sidebar nav {
+    flex: 1;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.34) transparent;
+}
+/* A scrollbar for a dark rail. The UA default is a ~15px near-white stripe on Linux/Windows
+   (15.5:1 against #1c1917 -- it reads as a second, brighter column) and a ~2:1 overlay thumb on
+   macOS that is effectively invisible, so the list gave no honest sign it scrolled. 0.34 white
+   over #1c1917 composites to ~#656564, clearing 1.4.11's 3:1 for a non-text control. */
+.sidebar nav::-webkit-scrollbar { width: 8px; }
+.sidebar nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.34); border-radius: 4px; }
+.sidebar nav:hover::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.5); }
 
 .sidebar nav a {
     display: flex;
@@ -582,52 +863,10 @@ a.entity-card { text-decoration: none; color: inherit; cursor: pointer; }
     border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.sidebar-user {
-    flex-shrink: 0;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.07);
-    font-size: 0.8rem;
-    color: var(--ink-subtle);
-    line-height: 1.6;
-}
-.sidebar-user a { color: var(--ink-faint); }
-.sidebar-user a:hover { color: #d6d3d1; }
-
 .page-wrap {
-    margin-left: 220px;
-    padding-top: var(--banner-offset, 0px);
+    margin-left: var(--sidebar-w);
+    padding-top: calc(var(--banner-offset, 0px) + var(--topbar-h));
     min-height: 100vh;
-}
-.org-header-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.6rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    background: #fff;
-}
-.org-header-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-.org-header-name {
-    font-weight: 600;
-    font-size: 0.925rem;
-    color: var(--ink);
-}
-.org-header-bar select {
-    font-size: 0.9rem;
-    font-family: inherit;
-    font-weight: 600;
-    padding: 0.2rem 0.5rem;
-    border: 1px solid var(--border-strong);
-    border-radius: 4px;
-    background: #fff;
-    color: var(--ink);
-    cursor: pointer;
 }
 
 .page-content {
@@ -1842,16 +2081,27 @@ hr.divider { border: none; border-top: 1px solid #ccd1d8; height: 0; margin: 2re
 
 
 /* ── Responsive shell ─────────────────────────────────────────────────────────
-   At/below 860px the fixed sidebar becomes an off-canvas drawer toggled from a
-   mobile top bar (hamburger), with a backdrop and body scroll-lock. Tables scroll
-   horizontally and sidebar-modals stack, so the app is usable on phones/tablets.
+   At/below 860px the fixed sidebar becomes an off-canvas drawer, toggled from the
+   hamburger the topbar picks up at this width, with a backdrop and body scroll-lock.
+   Tables scroll horizontally and sidebar-modals stack, so the app is usable on
+   phones/tablets.
    Toggle logic: toggleSidebar()/closeSidebar() in app.js flip body.sidebar-open. */
 
-.mobile-topbar { display: none; }
+/* The hamburger lives in .app-topbar, which is present at every width -- so it needs a guard of
+   its own. It used to get one for free by sitting inside .mobile-topbar. */
+.mobile-nav-toggle { display: none; }
 .sidebar-backdrop { display: none; }
 
 @media (max-width: 860px) {
+    /* The rail is off-canvas here, so the bar takes the whole width and carries the brand and
+       the hamburger. The drawer starts BELOW the bar, which keeps the hamburger that closes it
+       lit and tappable, and makes a brand row inside the drawer redundant. */
+    .app-topbar { left: 0; padding: 0 0.5rem; gap: 0.35rem; }
+    .app-topbar-lead { display: flex; }
+    .sidebar .sidebar-brand { display: none; }
+
     .sidebar {
+        top: calc(var(--banner-offset, 0px) + var(--topbar-h));
         width: 264px;
         transform: translateX(-100%);
         transition: transform 0.22s ease;
@@ -1861,9 +2111,10 @@ hr.divider { border: none; border-top: 1px solid #ccd1d8; height: 0; margin: 2re
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
     }
 
+    /* Starts below the topbar, so the hamburger that closes the drawer stays lit and tappable. */
     .sidebar-backdrop {
         position: fixed;
-        inset: var(--banner-offset, 0px) 0 0 0;
+        inset: calc(var(--banner-offset, 0px) + var(--topbar-h)) 0 0 0;
         z-index: 190;
         background: rgba(28, 25, 23, 0.5);
     }
@@ -1872,33 +2123,36 @@ hr.divider { border: none; border-top: 1px solid #ccd1d8; height: 0; margin: 2re
 
     .page-wrap { margin-left: 0; }
 
-    .mobile-topbar {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        position: sticky;
-        top: var(--banner-offset, 0px);
-        z-index: 100;
-        padding: 0.5rem 0.75rem;
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-    }
+    /* Names every box property rather than inheriting them: this used to be a child of the
+       flex .mobile-topbar, and base.css's bare `button` rule is what is underneath it now. */
     .mobile-nav-toggle {
-        background: transparent;
-        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         padding: 0.5rem;
+        background: transparent;
+        border: 0;
+        border-radius: var(--radius);
+        color: var(--ink);
+        cursor: pointer;
     }
     .mobile-nav-toggle:hover { background: var(--surface-alt); color: var(--ink); }
     .mobile-nav-toggle [data-lucide] { width: 1.4rem; height: 1.4rem; }
-    .mobile-topbar-brand {
-        font-family: 'Nunito', sans-serif;
-        font-weight: 800;
-        font-size: 1.05rem;
-        color: var(--ink);
-    }
+
+    /* The full trail does not fit, and the org control at its root already says which
+       organization this is -- while the page's own <h1> says which screen. The middle crumbs go. */
+    .app-topbar-scope .breadcrumb { display: none; }
+    .topbar-org-trigger,
+    .topbar-org-static { max-width: 11rem; }
+
+    /* Avatar only: the name is in the menu's own header the moment it opens, and two letters
+       are the affordance. The org trigger keeps ITS chevron -- it is the only thing marking
+       that name as something you can open. */
+    .topbar-menu-name,
+    .app-topbar-account .topbar-menu-chevron { display: none; }
+    .topbar-menu-trigger { padding: 0.25rem; }
 
     .page-content { padding: 1rem; }
-    .org-header-bar { flex-wrap: wrap; padding: 0.5rem 1rem; }
     .template-grid { grid-template-columns: repeat(2, 1fr); }
     .modal-back { position: static; margin-bottom: 0.75rem; }
     .wc-choice-row { grid-template-columns: 1fr; }
@@ -2110,6 +2364,20 @@ hr.divider { border: none; border-top: 1px solid #ccd1d8; height: 0; margin: 2re
    that fits, and the height that scrollbar took then produced a vertical one too. Anchoring it to
    the button's right edge keeps it inside the box; it still points at the right control. */
 .table-scroll [data-tooltip]::after { left: auto; right: 0; transform: translateY(-6px); }
+
+/* The topbar is fixed to the top of the viewport, so a tooltip drawn ABOVE its trigger -- which is
+   the default, bottom: 100% -- renders off the top of the screen and cannot be read. Flipped below,
+   and anchored to the button's right edge rather than centred on it, because the buttons that carry
+   one sit at the right-hand end where a centred tooltip runs past the window.
+   Nothing in the framework's own bar carries a tooltip yet; this is here for the .topbar-icon-btn
+   an application adds, and the two belong together. */
+.app-topbar [data-tooltip]::after {
+    top: 100%;
+    bottom: auto;
+    left: auto;
+    right: 0;
+    transform: translateY(6px);
+}
 
 /* A revoked or expired comp: still in the table, because who gave what and when is the point, but
    never mistakable for one that is still entitling. */
