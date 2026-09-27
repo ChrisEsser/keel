@@ -149,6 +149,7 @@ $e = static fn(?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES, 
     <link rel="stylesheet" href="<?= $this->asset('/css/app.css') ?>">
     <script src="<?= $this->asset('/js/feedback.js') ?>"></script>
     <script src="<?= $this->asset('/js/app.js') ?>"></script>
+    <script src="<?= $this->asset('/js/file-uploader.js') ?>"></script>
     <script src="<?= $this->asset('/js/code-input.js') ?>"></script>
     <?php // A self-contained colour picker: one global (ColorPickerWidget), its own injected
           // stylesheet, no dependency on any other script or icon font. Loaded globally rather than

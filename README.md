@@ -106,6 +106,14 @@ Stripe's two different API response shapes.
 **An audit log.** Append-only, with denormalized labels so last year's entries still describe what
 was true last year. Built for the support call, not for compliance theater.
 
+**File uploads.** `public/js/file-uploader.js` (loaded by `layouts/main.php`) turns any
+`<input type="file">` into a drag-and-drop zone with type and size checks, an image thumbnail or
+file-type icon, and an "already uploaded" state. It only picks and validates, and your page decides
+when to post: `new FileUploader(input, { maxSize, label, existing: {url, name, type}, onChange: ({file}) => … })`,
+then `getFile()`, `clear()` and `setExisting()`. It keeps the input's `files` in sync, so a plain form
+or `new FormData(form)` works too. Use it for every upload rather than a bare file input, and match
+`maxSize` to the server's limit.
+
 **Two surfaces.** The front controller forks on the `Host` header: your app on one host, a public
 marketing site on another, each with its own router so neither can reach the other's routes. Leave
 `APP_DOMAIN` blank and it's a single-host app with no ceremony.
