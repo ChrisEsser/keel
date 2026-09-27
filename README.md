@@ -71,6 +71,7 @@ to `src/` — so `src/Model/Model.php` is `Framework\Model\Model` and `src/Model
 | Change the schema | Add a file to `scripts/migrations/`, run `php scripts/migrate.php` |
 | Change what a role may do | `Framework\Accounts\Model\Role` and `Framework\Accounts\OrgGuard` |
 | Add to the support hub | `OrgAdminController::show()` and `views/organizations/show.php` |
+| Run something on a schedule | Read **Scheduled jobs** below before writing the first one |
 
 Nothing is off limits. If a framework decision is wrong for your project, change it — that is the
 point of the code being in your repo rather than in `vendor/`.
@@ -147,6 +148,41 @@ A few things that are deliberate, and easy to undo by accident:
   controller method and see exactly what it checks.
 - **Restricted UI is shown locked, not hidden.** A teammate who can't find the Billing tab files a
   support ticket; one who sees it greyed out with a sentence saying why does not.
+
+## Scheduled jobs
+
+Keel ships no scheduler, but it assumes one: `Framework\Billing\SubscriptionMailer::sendGraceEnding`
+is written and nothing calls it, and every real application grows jobs that must run on a clock
+(reminders, sweeps, retention). Give the first one this shape rather than a bare crontab line.
+Retrofitting it after five jobs is much harder than starting with it.
+
+- **One script per job**, `scripts/<job>.php`. It must be safe to run more often than scheduled
+  (a missed run is made up by the next one), take `--dry-run` and, where dates matter,
+  `--today=Y-m-d` to rehearse a date without waiting for it. It holds a lock
+  (`GET_LOCK('<app>:<job>', 0)`) and exits **75** (`EX_TEMPFAIL`) when another copy has it.
+- **A registry**, `App\CronSchedule`: every job, how long it may go without a successful run before
+  that's wrong (several times its cadence, not the cadence itself), and what breaks while it's
+  stopped. The repository holds the intended schedule, because a cron nobody installed looks
+  exactly like one running quietly.
+- **Every crontab line goes through a wrapper**, `php scripts/cron.php <job>`. It runs the job as a
+  child process (so a fatal error or an out-of-memory kill still has an exit status), then writes a
+  heartbeat file to `storage/cron/<job>.json`. Use files, not a table, so a database outage still
+  gets recorded. A skipped run (exit 75) moves no clocks, so a job stuck on its own lock goes
+  overdue instead of looking healthy.
+- **A monitor**, `scripts/check-crons.php`, hourly: FAILING, OVERDUE or NEVER RUN, one email digest
+  to the operator, re-sent only when the problems change. It also pings an external dead-man's
+  switch (healthchecks.io), because a monitor that is itself a cron can't report that cron died.
+- **A `docs/deployment.md` from day one**: the crontab lines, and a table of what each job does and
+  what quietly breaks if it never runs, updated in the same change that adds a job. A test that
+  fails when a registered job has no crontab line in the doc keeps the two from drifting.
+
+Working copies of all of the above, to lift rather than rewrite: `src/CronSchedule.php`,
+`src/Jobs/CronHeartbeat.php`, `src/Jobs/JobScript.php`, `scripts/cron.php`,
+`scripts/check-crons.php`, `tests/cron-monitor.php` and `docs/deployment.md` in the **chambers**
+repo (the smallest version). **aiweb** has the larger version: `src/CronSchedule.php`,
+`src/Service/CronHeartbeat.php`, `scripts/cron.php`, `scripts/check-crons.php`,
+`tests/cron-monitor.php`, and §8b of its `docs/deployment.md`, with a php-fpm pool check
+alongside.
 
 ## Requirements
 
