@@ -193,7 +193,7 @@ class AuthController
         Auth::finishLogin($user, $remember);
         AdminLog::record('auth.login', $user->fullName() . ' signed in', ['user' => $user, 'actor' => $user]);
 
-        if ($redirect !== '' && str_starts_with($redirect, '/')) {
+        if (self::isLocalPath($redirect)) {
             return Response::redirect($redirect);
         }
 
@@ -223,6 +223,23 @@ class AuthController
 
         $minutes = (int) ceil($seconds / 60);
         return $minutes . ' minute' . ($minutes === 1 ? '' : 's');
+    }
+
+    /**
+     * Whether a ?redirect= value is a path on this site, and so safe to send someone to after
+     * they sign in. Starting with "/" is not enough: browsers read "//evil.example" and
+     * "/\evil.example" as another website, which made the sign-in page an open redirect -- a
+     * link to our real login that lands the person, signed in and trusting it, on a lookalike.
+     * Control characters are refused too, since browsers drop tabs and newlines inside a URL
+     * ("/\t/evil.example" becomes "//evil.example").
+     */
+    public static function isLocalPath(string $path): bool
+    {
+        return $path !== ''
+            && $path[0] === '/'
+            && !str_starts_with($path, '//')
+            && !str_contains($path, '\\')
+            && !preg_match('/[\x00-\x1F\x7F]/', $path);
     }
 
     private function startTwoFactorChallenge(UserModel $user, bool $remember, string $redirect): Response
@@ -353,7 +370,7 @@ class AuthController
 
         Auth::finishLogin($user, $remember, $trustDevice);
 
-        if ($redirect !== '' && str_starts_with($redirect, '/')) {
+        if (self::isLocalPath($redirect)) {
             return Response::redirect($redirect);
         }
 
@@ -624,7 +641,7 @@ class AuthController
 
         Auth::finishPinLogin($user);
 
-        if ($redirect !== '' && str_starts_with($redirect, '/')) {
+        if (self::isLocalPath($redirect)) {
             return Response::redirect($redirect);
         }
 
