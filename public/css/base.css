@@ -369,6 +369,10 @@ body.guest-layout {
 }
 .password-toggle:hover { background: none; color: var(--ink); }
 .password-toggle svg { width: 17px; height: 17px; }
+/* Edge draws its own reveal eye inside password fields, on top of ours. There's no way to ask
+   whether a browser has one, so ours is the only one, the same everywhere. */
+.password-input input::-ms-reveal,
+.password-input input::-ms-clear { display: none; }
 
 /* Segmented code entry -- one box per character. Built by public/js/code-input.js around the
    real input, which becomes type=hidden and stays the submitted field. */
